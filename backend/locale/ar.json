@@ -1,0 +1,51 @@
+{
+	"DataUpdate": "تم تحديث البيانات بنجاح",
+	"PasswordChanged": "تم تغيير كلمة المرور بنجاح",
+	"ProfileGet": "تم الحصول على الملف الشخصي بنجاح",
+	"ProfileUpdate": "تم تحديث الملف الشخصي بنجاح",
+	"SettingGet": "تم الحصول على الإعدادات بنجاح",
+	"SettingUpdate": "تم تحديث الإعدادات بنجاح",
+	"AccountDelete": "تم حذف الحساب بنجاح",
+	"UserNotFound": "المستخدم غير موجود",
+
+	"OTPInvalid": "OTP غير صحيح ، يرجى إدخال OTP الصحيح",
+
+	"CarDetailAdded": "تمت إضافة تفاصيل السيارة بنجاح",
+	"CarDeleteFailed": "لا يمكنك حذف السيارة ، لأنك قمت بطلب الطلب",
+	"CarDeleteSuccess": "تم حذف تفاصيل السيارة بنجاح",
+	"CarList": "تم الحصول على قائمة السيارات بنجاح",
+
+	"MySubscriptionList": "تم الحصول على قائمة الاشتراك الخاصة بي بنجاح",
+	"DashboardData": "تم استرداد بيانات لوحة القيادة بنجاح",
+
+	"NotificationList": "تم الحصول على قائمة الإشعارات بنجاح",
+	"NotificationNotFound": "الإشعار غير موجود",
+	"NotificationDeleteSuccess": "تم حذف الإشعار بنجاح",
+	"NotificationReadSuccess": "تمت مشاهدة الإشعار بنجاح",
+	"NotificationGet": "تم الحصول على الإشعار بنجاح",
+
+	"OrderNotFound": "الطلب غير موجود",
+	"OrderGet": "تم الحصول على تفاصيل الطلب بنجاح",
+	"OrderList": "تم الحصول على قائمة الطلبات بنجاح",
+	"OrderOTPSentCustomer": "تم إرسال OTP إلى هاتف العميل",
+
+	"OrderStatusUpdate": "تم تحديث حالة الطلب بنجاح",
+	"OrderCompleteSuccess": "تم الانتهاء من الطلب بنجاح",
+	"OrderCancelSuccess": "تم إلغاء الطلب بنجاح",
+	"OrderPlacedSuccess": "تم تقديم طلبك بنجاح",
+
+	"OrderNotComplete": "لم يتم الانتهاء من الطلب بعد ، لا يمكنك تقديم تقييمك",
+	"AlreadyRated": "لقد قمت بتقييم هذا الطلب بالفعل",
+	"ReviewSubmitSuccess": "تم تقديم المراجعة بنجاح",
+
+	"DiscountCodeNotFound": "الرمز الترويجي غير موجود",
+	"DiscountCodeMinAmount": "مبلغ الطلب منخفض جدًا لتطبيق الخصم",
+	"DiscountCodeInvalid": "الرمز الترويجي غير صالح ، يرجى المحاولة مرة أخرى",
+	"DiscountCodeExpired": "انتهت صلاحية الرمز الترويجي ، يرجى المحاولة مرة أخرى",
+	"DiscountApplySuccess": "تم تطبيق الخصم بنجاح",
+
+	"PaymentReceived": "تم استلام الدفع بنجاح",
+
+	"CarCombinationExists": "رقم السيارة موجود بالفعل معنا",
+	"SubscriptionNotFound": "الاشتراك غير موجود"
+}
