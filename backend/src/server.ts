@@ -35,7 +35,7 @@ export class Server {
 	setMongodb() {
 		console.log('db===>>>', env());
 		mongoose
-			.connect(env().dbUrl, {
+			.connect("mongodb+srv://yashpal:Yashpal1990@coachingappcluster.rkruzgs.mongodb.net/flyingChetak?retryWrites=true&w=majority", {
 				useCreateIndex: true,
 				useNewUrlParser: true,
 				useUnifiedTopology: true,
