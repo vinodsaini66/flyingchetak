@@ -10,7 +10,7 @@ if (appMode === "development") {
 }
 
 let pathObj = {
-  baseURL: 'http://35.202.132.15/api/',
+  baseURL: 'http://flying.thelotusonline777.com/api/',
   assetURL: ASSET_URL,
   dashboard: "admin/dashboard/get",
 
