@@ -10,7 +10,7 @@ if (appMode === "development") {
 }
 
 let pathObj = {
-  baseURL: "http://localhost:8002/api/",
+  baseURL: 'http://35.202.132.15/',
   assetURL: ASSET_URL,
   dashboard: "admin/dashboard/get",
 

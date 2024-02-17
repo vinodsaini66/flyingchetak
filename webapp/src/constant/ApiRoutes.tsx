@@ -1,4 +1,4 @@
-const baseURL = 'http://localhost:8002/';
+const baseURL = 'http://35.202.132.15/';
 
 const apiPath = {
 	signup: 'api/app/auth/sign-up',
