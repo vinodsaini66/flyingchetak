@@ -1,4 +1,4 @@
-const baseURL = 'https://flying.thelotusonline777.com/';
+const baseURL = 'http://35.202.132.15/';
 
 const apiPath = {
 	signup: 'api/app/auth/sign-up',
