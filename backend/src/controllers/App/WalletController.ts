@@ -9,6 +9,7 @@ import HistorySetting from "../../models/HistorySetting";
 import WinningWallet from "../../models/WinningWallet";
 import Channel from "../../models/Channel";
 const { ObjectId } = require('mongodb');
+import { env } from '../../environments/Env';
 
 export class WalletController {
   /**
@@ -93,7 +94,7 @@ static async requestBalanceViaThirdParty(req, res, next) {
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
     
-console.log("redirect_url",`${process.env.REDIRECTION_URL}?id=${req.user._id}&amount=${balance}&txn=${txnRefId}`)
+console.log("redirect_url",`${env().redirection_url}?id=${req.user._id}&amount=${balance}&txn=${txnRefId}`)
     let data = JSON.stringify({
       "key": getChannel?.key,
       "client_txn_id": txnRefId,
@@ -102,7 +103,7 @@ console.log("redirect_url",`${process.env.REDIRECTION_URL}?id=${req.user._id}&am
       "customer_name": "Anil",
       "customer_email": "test@gmail.com",
       "customer_mobile": "9983732323",
-      "redirect_url": `${process.env.REDIRECTION_URL}?id=${req.user._id}&amount=${balance}&txn=${txnRefId}`,
+      "redirect_url": `${env().redirection_url}?id=${req.user._id}&amount=${balance}&txn=${txnRefId}`,
       "udf1": "user defined field 1",
       "udf2": "user defined field 2",
       "udf3": "user defined field 3"

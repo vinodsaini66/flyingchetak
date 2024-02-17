@@ -19,6 +19,7 @@ const HistorySetting_1 = require("../../models/HistorySetting");
 const WinningWallet_1 = require("../../models/WinningWallet");
 const Channel_1 = require("../../models/Channel");
 const { ObjectId } = require('mongodb');
+const Env_1 = require("../../environments/Env");
 class WalletController {
     /**
      * @api {post} /api/app/auth/login Login
@@ -84,7 +85,7 @@ class WalletController {
                 let txnRefId = 'CHETAK' + new Date().getTime();
                 var myHeaders = new Headers();
                 myHeaders.append("Content-Type", "application/json");
-                console.log("redirect_url", `${process.env.REDIRECTION_URL}?id=${req.user._id}&amount=${balance}&txn=${txnRefId}`);
+                console.log("redirect_url", `${(0, Env_1.env)().redirection_url}?id=${req.user._id}&amount=${balance}&txn=${txnRefId}`);
                 let data = JSON.stringify({
                     "key": getChannel === null || getChannel === void 0 ? void 0 : getChannel.key,
                     "client_txn_id": txnRefId,
@@ -93,7 +94,7 @@ class WalletController {
                     "customer_name": "Anil",
                     "customer_email": "test@gmail.com",
                     "customer_mobile": "9983732323",
-                    "redirect_url": `${process.env.REDIRECTION_URL}?id=${req.user._id}&amount=${balance}&txn=${txnRefId}`,
+                    "redirect_url": `${(0, Env_1.env)().redirection_url}?id=${req.user._id}&amount=${balance}&txn=${txnRefId}`,
                     "udf1": "user defined field 1",
                     "udf2": "user defined field 2",
                     "udf3": "user defined field 3"

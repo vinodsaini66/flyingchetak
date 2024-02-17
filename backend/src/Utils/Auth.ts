@@ -1,6 +1,7 @@
 import * as Bcrypt from 'bcrypt';
 import * as Jwt from 'jsonwebtoken';
 import path = require('path');
+import { env } from '../environments/Env';
 
 class Auth {
 	constructor() {}
@@ -31,7 +32,7 @@ class Auth {
 
 	async decodeJwt(token) {
 		return new Promise((resolve, reject) => {
-			Jwt.verify(token, process.env.JWT_SECRET, (err, data) => {
+			Jwt.verify(token, env().jwtSecret, (err, data) => {
 				if (err) {
 					return reject(err);
 				} else {
@@ -43,7 +44,7 @@ class Auth {
 
 	async getToken(data, expiresIn, next) {
 		try {
-			return Jwt.sign(data, process.env.JWT_SECRET, {
+			return Jwt.sign(data, env().jwtSecret, {
 				expiresIn,
 			});
 		} catch (err) {

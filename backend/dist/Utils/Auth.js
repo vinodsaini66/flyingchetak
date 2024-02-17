@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const Bcrypt = require("bcrypt");
 const Jwt = require("jsonwebtoken");
+const Env_1 = require("../environments/Env");
 class Auth {
     constructor() {
         this.MAX_TOKEN_TIME = 600000;
@@ -36,7 +37,7 @@ class Auth {
     decodeJwt(token) {
         return __awaiter(this, void 0, void 0, function* () {
             return new Promise((resolve, reject) => {
-                Jwt.verify(token, process.env.JWT_SECRET, (err, data) => {
+                Jwt.verify(token, (0, Env_1.env)().jwtSecret, (err, data) => {
                     if (err) {
                         return reject(err);
                     }
@@ -50,7 +51,7 @@ class Auth {
     getToken(data, expiresIn, next) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return Jwt.sign(data, process.env.JWT_SECRET, {
+                return Jwt.sign(data, (0, Env_1.env)().jwtSecret, {
                     expiresIn,
                 });
             }
