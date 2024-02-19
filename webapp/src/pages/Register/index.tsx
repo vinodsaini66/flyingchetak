@@ -49,7 +49,19 @@ export const Register = () => {
     ))
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async() => {
+    for (const key in userInput) {
+      if (userInput.hasOwnProperty(key)) {
+        const validation = userInput[key as keyof UserInput];
+        if (!validation) {
+          console.log(`Validation failed for ${key}`);
+          setUserInputError((prevError) => ({
+            ...prevError,
+            [key + "Error"]: "This field is required",
+          }));
+        }
+      }
+    }
     if(!userInput.password && !userInput.Cpassword && !userInput.mobile_number){
           return false
     }
@@ -140,13 +152,8 @@ export const Register = () => {
                             <img className="input_icon" src="img/star_rate.svg" />
                             <input type="text" name="referral_from_id" className="form-control" value={userInput.referral_from_id} placeholder="Please enter the invitation code" disabled={RFcode?true:false} onChange={handleChange} />
                          </div>
-
-                            
-
                           <div className="form-group text-center">
-                           <button  type="submit" className="btn btn2 ">Register</button>
-                         </div>
-                        
+                           <button  type="submit" onClick={handleSubmit} className="btn btn2">Register</button>
                          </div>
                          </div>
                          </div>
@@ -155,7 +162,8 @@ export const Register = () => {
                          </div>
                          </div>
                          </div>
-                     <Footer/>
+                         </div>
+                     {/* <Footer/> */}
         </>
     )
 }

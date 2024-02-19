@@ -38,7 +38,19 @@ export const Login = () => {
   }
 
   const handleSubmit = () => {
-    if(!userInput.mobile_number || !userInput.password){
+    for (const key in userInput) {
+      if (userInput.hasOwnProperty(key)) {
+        const validation = userInput[key as keyof userInput];
+        if (!validation) {
+          console.log(`Validation failed for ${key}`);
+          setUserInputError((prevError) => ({
+            ...prevError,
+            [key + "Error"]: "This field is required",
+          }));
+        }
+      }
+    }
+    if(userInputError.mobile_numberError || userInputError.passwordError ||!userInput.mobile_number ||!userInput.password){
       return false
     }
 
@@ -97,23 +109,23 @@ export const Login = () => {
                            <div className="form-group ">
                             <img className="input_icon" src="img/call.svg" />
                             <input   type="text" name="mobile_number" className="form-control" value={userInput.mobile_number} onChange={handleChange} placeholder="Phone number" />
-                              {/* <span style={{color:"red"}}>{userInputError.mobile_numberError}</span> */}
+                              <span style={{color:"red"}}>{userInputError.mobile_numberError}</span>
                            </div>
                            <div className="form-group ">
                               <img className="input_icon" src="img/key.svg" />
                             <input   type="text" name="password"  className="form-control" value={userInput.password} onChange={handleChange} placeholder="Please enterPassword" />
-                              {/* <span style={{color:"red"}}>{userInputError.passwordError}</span> */}
+                              <span style={{color:"red"}}>{userInputError.passwordError}</span>
                            </div>
                             
 
                               
 
                             <div className="form-group text-center">
-                            <button  type="submit" onClick={handleSubmit} disabled={userInput.password && userInput.mobile_number?false:true} className="btn_man w100">Log in</button>
+                            <button  type="submit" onClick={handleSubmit} className="btn_man w100">Log in</button>
                            </div>
                            </div>
                            </div></div></div></div></div></div></div>
-                     <Footer/>
+                     {/* <Footer/> */}
         </>
     )
 }

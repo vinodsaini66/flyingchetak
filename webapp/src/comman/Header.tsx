@@ -18,9 +18,9 @@ const Header = () => {
           <div className={icon ? "collapse navbar-collapse show":"collapse navbar-collapse"} id="navbarText">
             <ul className="navbar-nav ml-auto line">
        
-              <li className="nav-item">
+              {/* <li className="nav-item">
                 <Link className={url == "/"?"nav-link active":"nav-link"} to="/" >Home</Link>
-              </li>
+              </li> */}
               <li className="nav-item">
                 <Link className={url == "/promotion"?"nav-link active":"nav-link"} to="/promotion" >Promotion</Link>
               </li>
@@ -31,7 +31,7 @@ const Header = () => {
                 <Link className={url == "/account"?"nav-link active":"nav-link"} to="/account" >Account </Link>
               </li>
                <li className="nav-item">
-                <Link className={url == "/game"?"nav-link active":"nav-link"} target="_blank" to="/game" >Game Play </Link>
+                <Link className={url == "/game"?"nav-link active":"nav-link"} to="/game" >Game Play </Link>
               </li>
             </ul>
        

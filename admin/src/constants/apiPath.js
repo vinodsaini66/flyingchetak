@@ -1,16 +1,8 @@
-let appMode = process.env.REACT_APP_ENV;
-let ASSET_URL = "https://inventcolabs.s3.amazonaws.com/";
-let URL;
-if (appMode === "development") {
-  // URL = enter server url
-  URL = "localhost:8002/api/"; //development
-} else {
-  // URL = enter server URL
-  URL = "localhost:8002/api/";
-}
 
+const baseURL = 'http://35.202.132.15/api/';
+// const baseURL = "http://localhost:8002/api/",
 let pathObj = {
-  baseURL: 'http://35.202.132.15/api/',
+  baseURL: baseURL,
   assetURL: ASSET_URL,
   dashboard: "admin/dashboard/get",
 

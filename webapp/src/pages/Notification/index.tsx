@@ -52,7 +52,7 @@ export const Notification = () => {
            
                      </div>
                      </div>
-            <Footer/>
+            {/* <Footer/> */}
             </>)
 
 }

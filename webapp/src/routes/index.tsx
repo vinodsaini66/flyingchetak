@@ -27,13 +27,17 @@ export const Routes = () => {
     const token = localStorage.getItem("token")
     const navigate = <Navigate to="/login"/>
     const router = createBrowserRouter([
+        // {
+        //     path:"/",
+        //     element:<Home/>
+        // },
         {
             path:"/",
-            element:<Home/>
+            element:token?<Navigate to="/account" replace />:<Login/>
         },
         {
             path:"/login",
-            element:<Login/>
+            element:token?<Navigate to="/account" replace />:<Login/>
         },
         {
             path:"/register",

@@ -197,7 +197,7 @@ Love DamanClub! 📱💙 Join me & let's both get rewards. 🎁 Use my code ${us
                      </div>
                      </div>
                      <BankModel  isOpen={open} setOpen={setOpen} onClose={handleClose} getProfile={getProfile}/>
-        <Footer/>
+        {/* <Footer/> */}
         </>
     )
 }

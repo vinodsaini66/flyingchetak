@@ -8,7 +8,7 @@ export const NotFound = () => {
         <div className="not-found">
         <img src="../../img/not-found.jpg" width={1000} height={500}/>
         </div>
-        <Footer/>
+        {/* <Footer/> */}
         </>
     )
 }

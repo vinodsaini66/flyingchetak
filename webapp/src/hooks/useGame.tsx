@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { apiPath } from '../constant/ApiRoutes';
+import { apiPath, baseURL } from '../constant/ApiRoutes';
 import { Severty, ShowToast } from '../helper/toast';
 import useRequest from './useRequest';
 
@@ -122,7 +122,7 @@ const useGame = () => {
 	};
 
 	useEffect(() => {
-		const source = new EventSource(`http://localhost:8002/handle-game`);
+		const source = new EventSource(`${baseURL}handle-game`);
 
 		source.addEventListener('open', () => {
 			console.log('SSE opened!');
@@ -141,7 +141,7 @@ const useGame = () => {
 					setX(data.data.X);
 				}
 				if (data?.data?.allBets) {
-					// setBets(data.data.allBets);
+					setBets(data.data.allBets);
 				}
 			}
 		});

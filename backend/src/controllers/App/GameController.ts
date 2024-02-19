@@ -439,17 +439,15 @@ export class GameController {
 		data: any;
 		error: any;
 	}> {
-		console.log("dataLog==CallGame==");
 		try {
 			const ongoingGame = await OngoingGame.findOne();
 			const currentGame = await Game.findById(ongoingGame?.current_game);
-
+			console.log("currentGame===============+++++++++++++----------->>>>>>>>>>>",currentGame);
 			const allBets = await Bet.find({
 				game_id: currentGame?._id,
 			}).populate([{ path: 'user_id' }]);
-			console.log("allebtesssssssssssssssss==========>>>>>>>",allBets)
 			const project = { fall_rate: 1, _id: 0 };
-			const fall_rate = await Game.find({},project)
+			// const fall_rate = await Game.find({},project)
 
 
 			const baseAmount: number = currentGame?.base_amount;
@@ -457,7 +455,6 @@ export class GameController {
 				Math.round(
 					(currentGame?.total_deposit - currentGame?.commission_amount) * 100
 				) / 100;
-		console.log("data===....................<><><><><><><><><><><><><><>",fall_rate,);
 
 			const result = await Bet.aggregate([
 				{
@@ -480,11 +477,14 @@ export class GameController {
 			const remaining = +gameTotal - +totalWithdrawAmount;
 			const timeDiffInMs: number = Date.now() - currentGame?.start_time
 			const timeDiffInMs1: number = currentGame?.end_time;
-			console.log("timeDiffInMs:==.........>>>>>>>>>>>>>>..",timeDiffInMs1-Date.now());
 			// result.length === 0 && 
 			if (Date.now() >= Number(timeDiffInMs1)) {
-				console.log("gameEnd==============");
-				const gameEnd = await GameController.endGame();
+				if(!currentGame.is_game_end){
+					const gameEnd = await GameController.endGame();
+					currentGame.is_game_end = true
+					currentGame.save()
+				}
+				
 
 				// if (!gameEnd) {
 					let X = 0;
@@ -527,7 +527,6 @@ export class GameController {
 					data: {
 						X,
 						allBets,
-						fall_rate,
 						is_game_end: false,
 					},
 					error: null,

@@ -108,7 +108,7 @@ const getPromotionData = () => {
              
                       </div>
                     </div>
-                    <Footer/>
+                    {/* <Footer/> */}
                     </>
         )
 }

@@ -153,7 +153,7 @@ export const Wallet = () =>{
                      {withdrawalOpen && <WithdrawalModel setWOpen={setWithdrawalOpen} onClose={handleClose} 
                      balanceApi = {setAgain} getTransaction={handleClick}/>}
              
-        <Footer/>
+        {/* <Footer/> */}
 
         </>
     )
