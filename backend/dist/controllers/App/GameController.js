@@ -265,19 +265,17 @@ class GameController {
     }
     static handleGame() {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("dataLog==CallGame==");
             try {
                 const ongoingGame = yield OngoingGame_1.default.findOne();
                 const currentGame = yield Game_1.default.findById(ongoingGame === null || ongoingGame === void 0 ? void 0 : ongoingGame.current_game);
+                console.log("currentGame===============+++++++++++++----------->>>>>>>>>>>", currentGame);
                 const allBets = yield Bet_1.default.find({
                     game_id: currentGame === null || currentGame === void 0 ? void 0 : currentGame._id,
                 }).populate([{ path: 'user_id' }]);
-                console.log("allebtesssssssssssssssss==========>>>>>>>", allBets);
                 const project = { fall_rate: 1, _id: 0 };
-                const fall_rate = yield Game_1.default.find({}, project);
+                // const fall_rate = await Game.find({},project)
                 const baseAmount = currentGame === null || currentGame === void 0 ? void 0 : currentGame.base_amount;
                 const gameTotal = Math.round(((currentGame === null || currentGame === void 0 ? void 0 : currentGame.total_deposit) - (currentGame === null || currentGame === void 0 ? void 0 : currentGame.commission_amount)) * 100) / 100;
-                console.log("data===....................<><><><><><><><><><><><><><>", fall_rate);
                 const result = yield Bet_1.default.aggregate([
                     {
                         $match: {
@@ -296,11 +294,13 @@ class GameController {
                 const remaining = +gameTotal - +totalWithdrawAmount;
                 const timeDiffInMs = Date.now() - (currentGame === null || currentGame === void 0 ? void 0 : currentGame.start_time);
                 const timeDiffInMs1 = currentGame === null || currentGame === void 0 ? void 0 : currentGame.end_time;
-                console.log("timeDiffInMs:==.........>>>>>>>>>>>>>>..", timeDiffInMs1 - Date.now());
                 // result.length === 0 && 
                 if (Date.now() >= Number(timeDiffInMs1)) {
-                    console.log("gameEnd==============");
-                    const gameEnd = yield GameController.endGame();
+                    if (!currentGame.is_game_end) {
+                        const gameEnd = yield GameController.endGame();
+                        currentGame.is_game_end = true;
+                        currentGame.save();
+                    }
                     // if (!gameEnd) {
                     let X = 0;
                     return {
@@ -341,7 +341,6 @@ class GameController {
                     data: {
                         X,
                         allBets,
-                        fall_rate,
                         is_game_end: false,
                     },
                     error: null,
