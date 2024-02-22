@@ -30,9 +30,8 @@ class ChannelController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const startTime = new Date().getTime();
-                let { name, key, _id } = req.body;
+                let { name, key, _id, url } = req.body;
                 let get;
-                console.log("sdfbsdjhfbsdjhbds", req.body);
                 if (_id) {
                     get = yield Channel_1.default.updateOne({ _id: _id }, { $set: req.body });
                 }

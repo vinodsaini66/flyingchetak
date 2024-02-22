@@ -65,6 +65,7 @@ class UserInfoController {
                             transaction_id: 1,
                             is_active: 1,
                             country_code: 1,
+                            withdrawal_status: 1,
                             created_at: 1,
                             user_id: 1,
                             name: 1,
@@ -141,13 +142,80 @@ class UserInfoController {
             }
         });
     }
+    static withdrawalStatusChange(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const startTime = new Date().getTime();
+                const getCustomer = yield User_1.default.findOne({ _id: req.params.id });
+                if (!getCustomer) {
+                    return ResponseHelper_1.default.notFound(res, 'NOTFOUND', 'Customer not found', getCustomer, startTime);
+                }
+                (getCustomer.withdrawal_status = !getCustomer.withdrawal_status), getCustomer.save();
+                return ResponseHelper_1.default.ok(res, 'SUCCESS', 'Withdrawal Status Changed Successfully', getCustomer, startTime);
+            }
+            catch (err) {
+                next(err);
+            }
+        });
+    }
     static viewUser(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
             const startTime = new Date().getTime();
             let id = ObjectId(req.params.id);
             try {
-                let isUsersExist = yield User_1.default.findOne({ _id: id });
-                return ResponseHelper_1.default.ok(res, 'SUCCESS', 'User found successfully', isUsersExist, startTime);
+                let user = yield User_1.default.aggregate([
+                    { $match: { _id: id } },
+                    {
+                        $lookup: {
+                            from: 'wallets',
+                            localField: '_id',
+                            foreignField: 'userId',
+                            as: 'wallet'
+                        }
+                    },
+                    {
+                        $unwind: '$wallet'
+                    },
+                    //   {
+                    // 	$lookup: {
+                    // 	  from: 'transactions',
+                    // 	  localField: 'wallet._id',
+                    // 	  foreignField: 'wallet_id',
+                    // 	  as: 'transactions'
+                    // 	}
+                    //   },
+                    //   {
+                    // 	$unwind: '$transactions'
+                    //   },
+                    {
+                        $project: {
+                            _id: 0,
+                            name: "$name",
+                            email: "$email",
+                            mobile_number: "$mobile_number",
+                            created_at: "$created_at",
+                            account_holder: "$bank_info.account_holder",
+                            ifsc_code: "$bank_info.ifsc_code",
+                            account_number: "$bank_info.account_number",
+                            is_active: "$is_active",
+                            balance: "$wallet.balance"
+                        }
+                    },
+                    //   {
+                    // 	$group: {
+                    // 	  _id: "$_id",
+                    // 	  totalDeposits: {
+                    // 		$sum: { $cond: [{ $eq: ["$transactions.transaction_type", "Debit"] }, "$transactions.amount", 0] }
+                    // 	  },
+                    // 	  totalWithdrawals: {
+                    // 		$sum: { $cond: [{ $eq: ["$transactions.transaction_type", "Credit"] }, "$transactions.amount", 0] }
+                    // 	  }
+                    // 	},
+                    // 	entries: { $push: "$$ROOT" }
+                    //   },
+                ]);
+                // let isUsersExist = await User.findOne({_id:id});
+                return ResponseHelper_1.default.ok(res, 'SUCCESS', 'User found successfully', user, startTime);
             }
             catch (err) {
                 next(err);

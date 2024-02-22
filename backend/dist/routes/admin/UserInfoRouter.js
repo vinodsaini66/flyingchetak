@@ -16,6 +16,7 @@ class UserInfoRouter {
         this.router.get('/list', UserinfoController_1.UserInfoController.list);
         this.router.get('/no-of-user', UserinfoController_1.UserInfoController.totalUser);
         this.router.get('/getuser/view/:id', UserinfoController_1.UserInfoController.viewUser);
+        this.router.get("/withdrawal/change-status/:id", Authentication_1.default.admin, UserinfoController_1.UserInfoController.withdrawalStatusChange);
     }
 }
 exports.default = new UserInfoRouter().router;

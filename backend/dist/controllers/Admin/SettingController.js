@@ -19,7 +19,7 @@ class AdminSettingController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const startTime = new Date().getTime();
-                const { email, mobile_number, country_code, bet_commission, min_bet, min_withdrawal, referral_bonus, address, facebook, instagram } = req.body;
+                const { email, mobile_number, country_code, withdrawal, bet_commission, min_bet, min_withdrawal, referral_bonus, address, facebook, instagram } = req.body;
                 const adminSettingFind = yield AdminSetting_1.default.findOne();
                 let newObj = {
                     country_code: country_code,
@@ -28,6 +28,7 @@ class AdminSettingController {
                     min_bet: min_bet,
                     address: address,
                     facebook: facebook,
+                    withdrawal: withdrawal,
                     instagram: instagram,
                     min_withdrawal: min_withdrawal,
                     referral_bonus: referral_bonus,

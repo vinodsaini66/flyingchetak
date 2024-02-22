@@ -84,6 +84,11 @@ const User = new Schema({
         type: String,
         default: null,
     },
+    withdrawal_status: {
+        type: Boolean,
+        enum: [true, false],
+        default: true,
+    },
     type: {
         type: String,
         enum: [user_type_enum_1.USER_TYPE.admin, user_type_enum_1.USER_TYPE.customer],
