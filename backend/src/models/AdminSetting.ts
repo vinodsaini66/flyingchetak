@@ -33,6 +33,10 @@ const AdminSetting = new Schema(
 			type: Number,
 			default: 0,
 		},
+		withdrawal: {
+			type: Boolean,
+			default: true,
+		},
 		referral_bonus: {
 			type: Number,
 			default: 0,

@@ -59,7 +59,7 @@ function Withdrawal() {
 						target='_blank'
 						rel='noreferrer noopener'
 						className='cap'
-						to={`/user/service-provider/view/${user_id._id}`}
+						to={`/user/view/transactions/${user_id}`}
 					>
 						{name  ? name : '-'}
 					</Link>

@@ -58,6 +58,11 @@ import {
         key: "name"
       },
       {
+        title: "Url",
+        dataIndex: "url",
+        key: "url",
+      },    
+      {
         title: "Key",
         dataIndex: "key",
         key: "key",
@@ -253,10 +258,11 @@ import {
 	}, [data]);
 
     const onCreate = (values) => {
-      const { name, key } = values;
+      const { name, key,url } = values;
       const payload = {};
       setLoading(true);
       payload.name = name;
+      payload.url = url;
       payload.key = key;
       if(data){
         payload._id = data._id;
@@ -317,6 +323,25 @@ import {
                 <Input
                   autoComplete="off"
                   placeholder={`Enter Name`}
+                  className="cap"
+                />
+              </Form.Item>
+            </Col>
+            <Col span={24}>
+              <Form.Item
+                label={`Url`}
+                name="url"
+                rules={[
+                  { required: true, message: "Please enter the url!" },
+                  {
+                    min: 2,
+                    message: "url should contain atleast 2 characters!",
+                  },
+                ]}
+              >
+                <Input
+                  autoComplete="off"
+                  placeholder={`Enter Url`}
                   className="cap"
                 />
               </Form.Item>

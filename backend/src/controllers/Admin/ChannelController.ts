@@ -30,10 +30,9 @@ static async AddChannel(req, res, next) {
 	try {
 		const startTime = new Date().getTime();
 		let {
-			name,key,_id
+			name,key,_id,url
 		} = req.body
 		let get
-		console.log("sdfbsdjhfbsdjhbds",req.body)
 		if(_id){
 			get = await Channel.updateOne({_id:_id},{$set:req.body})
 		}

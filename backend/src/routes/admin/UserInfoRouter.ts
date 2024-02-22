@@ -19,6 +19,8 @@ class UserInfoRouter {
 		this.router.get('/list', UserInfoController.list);
 		this.router.get('/no-of-user', UserInfoController.totalUser);
 		this.router.get('/getuser/view/:id', UserInfoController.viewUser);
+		this.router.get("/withdrawal/change-status/:id", Authentication.admin, UserInfoController.withdrawalStatusChange);
+
 
 	}
 }

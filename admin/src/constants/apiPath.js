@@ -1,9 +1,9 @@
 
 const baseURL = 'http://35.202.132.15/api/';
-// const baseURL = "http://localhost:8002/api/",
+// const baseURL = "http://localhost:8002/api/";
 let pathObj = {
   baseURL: baseURL,
-  assetURL: ASSET_URL,
+  // assetURL: ASSET_URL,
   dashboard: "admin/dashboard/get",
 
   // Auth API
@@ -37,6 +37,7 @@ let pathObj = {
   listCustomer: "admin/user-info-router/list",
   addEditCustomer: "admin/user-info-router/add-edit",
   statusCustomer: "admin/customer/status",
+  withdrawal_Active:"admin/user-info-router/withdrawal/change-status",
   viewCustomer: "admin/user-info-router/getuser/view",
 
   editSetting: "admin/setting/update",

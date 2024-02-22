@@ -68,6 +68,7 @@ export class UserInfoController {
 						transaction_id: 1,
 						is_active: 1,
 						country_code:1,
+						withdrawal_status:1,
 						created_at: 1,
 						user_id: 1,
 						name: 1,
@@ -144,15 +145,15 @@ export class UserInfoController {
 				mobile_number:mobile_number,
 				country_code:country_code,
 				type:type
-			}
+				}
 		try {
 			let addUser;
 			if(!id){
 				addUser = await User.create(object);
-			}
+				}
 			else{
 				addUser = await User.updateOne({_id:ids},{$set:object});
-			}
+				}
 			
 			return _RS.ok(
 				res,
@@ -165,16 +166,102 @@ export class UserInfoController {
 			next(err);
 		}
 	}
+
+	
+	static async withdrawalStatusChange(req, res, next) {
+		try {
+			const startTime = new Date().getTime();
+
+			const getCustomer = await User.findOne({ _id: req.params.id });
+			if (!getCustomer) {
+				return _RS.notFound(
+					res,
+					'NOTFOUND',
+					'Customer not found',
+					getCustomer,
+					startTime
+				);
+			}
+
+			(getCustomer.withdrawal_status = !getCustomer.withdrawal_status), getCustomer.save();
+
+			return _RS.ok(
+				res,
+				'SUCCESS',
+				'Withdrawal Status Changed Successfully',
+				getCustomer,
+				startTime
+			);
+		} catch (err) {
+			next(err);
+		}
+	}
+
+
 	static async viewUser(req, res, next) {
 		const startTime = new Date().getTime();
 		let id = ObjectId(req.params.id)
 		try {
-			let isUsersExist = await User.findOne({_id:id});
+			let user = await User.aggregate([
+				{$match:{_id:id}},
+				{
+					$lookup: {
+					  from: 'wallets',
+					  localField: '_id',
+					  foreignField: 'userId',
+					  as: 'wallet'
+					}
+				  },
+				  {
+					$unwind: '$wallet'
+				  },
+				//   {
+				// 	$lookup: {
+				// 	  from: 'transactions',
+				// 	  localField: 'wallet._id',
+				// 	  foreignField: 'wallet_id',
+				// 	  as: 'transactions'
+				// 	}
+				//   },
+				//   {
+				// 	$unwind: '$transactions'
+				//   },
+				  {
+					$project: {
+					  _id: 0, // Exclude the _id field
+					  name: "$name",
+					  email:"$email",
+					  mobile_number:"$mobile_number",
+					  created_at:"$created_at",
+					  account_holder:"$bank_info.account_holder",
+					  ifsc_code:"$bank_info.ifsc_code",
+					  account_number:"$bank_info.account_number",
+					  is_active:"$is_active",
+					  balance:"$wallet.balance"
+					}
+				  },
+				//   {
+				// 	$group: {
+				// 	  _id: "$_id",
+				// 	  totalDeposits: {
+				// 		$sum: { $cond: [{ $eq: ["$transactions.transaction_type", "Debit"] }, "$transactions.amount", 0] }
+				// 	  },
+				// 	  totalWithdrawals: {
+				// 		$sum: { $cond: [{ $eq: ["$transactions.transaction_type", "Credit"] }, "$transactions.amount", 0] }
+				// 	  }
+				// 	},
+				// 	entries: { $push: "$$ROOT" }
+				//   },
+				  
+				  
+				])
+				
+			// let isUsersExist = await User.findOne({_id:id});
 			return _RS.ok(
 				res,
 				'SUCCESS',
 				'User found successfully',
-				isUsersExist,
+				user,
 				startTime
 			);
 		} catch (err) {

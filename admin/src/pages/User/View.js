@@ -25,7 +25,7 @@ function View() {
 			onSuccess: (data) => {
 				console.log("datadata",data)
 				setLoading(false);
-				setList(data?.data);
+				setList(data?.data?.data[0]);
 			},
 			onError: (error) => {
 				ShowToast(error, Severty.ERROR);
@@ -89,7 +89,7 @@ function View() {
 							<Skeleton active />
 						) : (
 							<div className='view-main-list'>
-								<div className='view-inner-cls'>
+								{/* <div className='view-inner-cls'>
 									<h5>Image:</h5>
 									<h6>
 										{list && list.name && !list.image ? (
@@ -116,50 +116,56 @@ function View() {
 											/>
 										)}
 									</h6>
-								</div>
+								</div> */}
 
 								<div className='view-inner-cls'>
 									<h5>Name:</h5>
 									<h6>
-										<span className='cap'>{list.name ? list.name : '-'}</span>
+										<span className='cap'>{list?.name ? list.name : '-'}</span>
 									</h6>
 								</div>
 
 								<div className='view-inner-cls'>
 									<h5>Email Address:</h5>
-									<h6>{list.email ? list.email : '-'}</h6>
+									<h6>{list?.email ? list.email : '-'}</h6>
 								</div>
 
 								<div className='view-inner-cls'>
 									<h5>Phone Number:</h5>
 									<h6>
-										{list ? '+' + list.country_code + '-' : '+965'}
+										{/* {list ? '+' + list.country_code + '-' : '+965'} */}
 										{list ? list.mobile_number : '-'}
 									</h6>
 								</div>
 								<div className='view-inner-cls'>
 									<h5>Account Hplder Name:</h5>
 									<h6>
-										{list ? list?.bank_info?.account_holder : '-'}
+										{list ? list?.account_holder : '-'}
 									</h6>
 								</div>
 								<div className='view-inner-cls'>
 									<h5>IFSC Code:</h5>
 									<h6>
-										{list ? list?.bank_info?.ifsc_code: '-'}
+										{list ? list?.ifsc_code: '-'}
 									</h6>
 								</div>
 								<div className='view-inner-cls'>
 									<h5>Account Number:</h5>
 									<h6>
-										{list ? list?.bank_info?.account_number : '-'}
+										{list ? list?.account_number : '-'}
+									</h6>
+								</div>
+								<div className='view-inner-cls'>
+									<h5>Balance:</h5>
+									<h6>
+										{list ? list?.balance +" Rs" : '-'}
 									</h6>
 								</div>
 
 								<div className='view-inner-cls'>
 									<h5>Status:</h5>
 									<h6>
-										{list.is_active ? (
+										{list?.is_active ? (
 											<Badge status='success' text='Active' />
 										) : (
 											<Badge status='error' text='InActive' />
@@ -170,8 +176,8 @@ function View() {
 								<div className='view-inner-cls'>
 									<h5>Registered On:</h5>
 									<h6>
-										{list.created_at
-											? moment(list.created_at).format('MM-DD-YYYY')
+										{list?.created_at
+											? moment(list?.created_at).format('MM-DD-YYYY')
 											: '-'}
 									</h6>
 								</div>

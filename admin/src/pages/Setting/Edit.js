@@ -8,6 +8,7 @@ import {
   InputNumber,
   Row,
   Skeleton,
+  Switch,
 } from "antd";
 import React, { useEffect, useState } from "react";
 import "react-phone-input-2/lib/style.css";
@@ -303,6 +304,17 @@ function Edit() {
                     autoComplete='off'
                     placeholder='Enter Referral Bonus'
                   />
+                </Form.Item>
+              </Col>
+              <Col span={24} xs={24} sm={12} lg={12} xxl={8}>
+              <Form.Item 
+                name="withdrawal"
+                valuePropName="checked"
+                label='Withdrawal'
+                rules={[
+                  { required: true },
+                ]}>
+                  <Switch />
                 </Form.Item>
               </Col>
             </Row>

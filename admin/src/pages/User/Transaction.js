@@ -1,11 +1,12 @@
-import { Avatar, Badge, Card, Col, Image, Row, Skeleton, Table } from 'antd';
+import { Avatar, Badge, Card, Col, Image, Row, Skeleton, Table, Tag } from 'antd';
 import moment from 'moment';
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-
+import { WITHDRAW_STATUS } from '../../constants/WithdrawalStatus';
 import apiPath from '../../constants/apiPath';
 import { Severty, ShowToast } from '../../helper/toast';
 import useRequest from '../../hooks/useRequest';
+import WithdrawalStatus from '../Withdraw/_changeStatus';
 
 function UserTransaction() {
 	const sectionName = 'Customer';
@@ -16,6 +17,10 @@ function UserTransaction() {
 	const [creditList, setCreditList] = useState([]);
 	const [betList, setBetList] = useState([]);
 	const [loading, setLoading] = useState(false);
+	const [requestId, setRequestId] = useState();
+	const [requestStatus, setRequestStatus] = useState();
+	const [requestShow, setRequestShow] = useState();
+	const [refresh, setRefresh] = useState(false);
 
 	const [vehicles, setVehicles] = useState();
 
@@ -42,6 +47,24 @@ function UserTransaction() {
 		});
 	};
 
+	const onClickStatusChange = (_id, status) => {
+		if (
+			!(
+				status === WITHDRAW_STATUS.approved ||
+				status === WITHDRAW_STATUS.rejected ||
+				status === WITHDRAW_STATUS.success
+			)
+		) {
+			changeBookingStatus(_id, status);
+		}
+	};
+	
+	const changeBookingStatus = (id, status) => {
+		setRequestId(id);
+		setRequestStatus(status);
+		setRequestShow(true);
+	};
+
 	const column = [
 		{
 			title: 'Payee',
@@ -53,11 +76,31 @@ function UserTransaction() {
 		},
 		{
 			title: 'Status',
-			dataIndex: 'status',
 			key: 'status',
-			// render: (_, { brand_id }) => {
-			// 	return brand_id && brand_id?.name ? brand_id.name : '-';
-			// },
+			render: (_, { status, _id }) => {
+				console.log("statusstatus",status,_id)
+				let color =
+					status === 'Success'
+						? 'green'
+						: status === 'Rejected'
+						? 'red'
+						: 'yellow';
+				return (
+					<a>
+						<Tag
+							color={color}
+							key={status}
+							onClick={() => onClickStatusChange(_id, status)}
+						>
+							{status === WITHDRAW_STATUS.pending
+								? 'Pending'
+								: status === WITHDRAW_STATUS.success
+								? 'Success'
+								: 'Rejected'}
+						</Tag>
+					</a>
+				);
+			},
 		},
 		{
 			title: 'Transaction Type',
@@ -153,7 +196,7 @@ function UserTransaction() {
 
 			<Row gutter={24}>
 				<Col xs={12} lg={12}>
-					<Card title={'Debit List'}>
+					<Card title={'Debit / Deposite List'}>
 						<div className='table-responsive customPagination'>
 							<Table
 								loading={loading}
@@ -174,7 +217,7 @@ function UserTransaction() {
 					</Card>
 				</Col>
 				<Col xs={12} lg={12}>
-					<Card title={'Credit List'}>
+					<Card title={'Credit / Withdrawal List'}>
 						<div className='table-responsive customPagination'>
 							<Table
 								loading={loading}
@@ -218,6 +261,17 @@ function UserTransaction() {
 					</Card>
 				</Col>
 			</Row>
+			{requestStatus && (
+				<WithdrawalStatus
+					show={requestShow}
+					hide={() => {
+						setRequestShow(false);
+					}}
+					status={requestStatus}
+					requestId={requestId}
+					statusRefresh={() => setRefresh((prev) => !prev)}
+				/>
+			)}
 		</>
 	);
 }

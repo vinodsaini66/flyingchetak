@@ -217,6 +217,7 @@ export class CustomerController {
 		}
 	}
 
+
 	static async view(req, res, next) {
 		try {
 			const startTime = new Date().getTime();

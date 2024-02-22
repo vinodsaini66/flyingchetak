@@ -37,7 +37,8 @@ function Index() {
 		status: apiPath.statusCustomer,
 		addEdit: apiPath.addEditCustomer,
 		list: apiPath.listCustomer,
-		transaction:apiPath.getTraByUserId
+		transaction:apiPath.getTraByUserId,
+		withdrawal_status:apiPath.withdrawal_Active
 	};
 
 	const [searchText, setSearchText] = useState('');
@@ -119,6 +120,42 @@ function Index() {
 			key: 'email',
 			render: (_, { email }) => {
 				return email ? email : '-';
+			},
+		},
+		{
+			title: 'Withdrawal Status',
+			key: 'withdrawal_status',
+			filters: [
+				{
+					text: 'Active',
+					value: true,
+				},
+				{
+					text: 'Inactive',
+					value: false,
+				},
+			],
+			render: (_, { withdrawal_status,_id }) => {
+				let color = withdrawal_status ? 'green' : 'red';
+				console.log("withdrawal_status",withdrawal_status)
+				return (
+					<a>
+						<Tag
+							onClick={(e) =>
+								showConfirm({
+									record: _id,
+									path: api.withdrawal_status,
+									onLoading: () => setLoading(true),
+									onSuccess: () => setRefresh((prev) => !prev),
+								})
+							}
+							color={color}
+							key={withdrawal_status}
+						>
+							{withdrawal_status ? 'Active' : 'Inactive'}
+						</Tag>
+					</a>
+				);
 			},
 		},
 		{

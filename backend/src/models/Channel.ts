@@ -13,7 +13,8 @@ export const BetStatus = {
 const Channel = new Schema(
 	{
 		key: { type: String,default:"" },
-		name: { type: String,default:"" }
+		name: { type: String,default:"" },
+		url: { type: String,default:"" }
     },
 	{
 		timestamps: {
