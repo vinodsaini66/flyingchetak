@@ -8,6 +8,7 @@ import { apiPath } from "../../constant/ApiRoutes";
 import { Severty, ShowToast } from "../../helper/toast";
 import moment from "moment";
 import { WalletContext } from "../../context/WalletContext";
+import { SettingContext } from "../../context/SettingContext";
 
 export const Wallet = () =>{
    const [open, setOpen] = useState<boolean>(false);
@@ -15,6 +16,7 @@ export const Wallet = () =>{
    const [transactionsList, setTransactionsList] = useState<any>([]);
    const [buttonClass, setButtonClass] = useState<string>("")
    const { walletDetails, setAgain } = useContext(WalletContext)
+   const {settingDetails} = useContext(SettingContext)
 
 
    const { request } = useRequest()
@@ -23,6 +25,10 @@ export const Wallet = () =>{
        set(false);
    };
    const handleWithdrawalOpen = () => {
+      if(!settingDetails.withdrawal){
+         ShowToast("Withdrawal is not active", Severty.ERROR);
+         return false
+      }
     setWithdrawalOpen(true)
    }
    useEffect(()=>{
@@ -67,6 +73,9 @@ export const Wallet = () =>{
     return(
         <>
         <Header/>
+        {/* <div className="active" style={{marginTop:"70px",textAlign:"center",border:"2px solid brown"}}>
+        <h4>{settingDetails.withdrawal?"Withdrawal Is Not Active":""}</h4>
+        </div> */}
         <div className="in_padding">
                         <div className="container">
                             <div className="row ">

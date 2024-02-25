@@ -20,6 +20,10 @@ function UserTransaction() {
 	const [requestId, setRequestId] = useState();
 	const [requestStatus, setRequestStatus] = useState();
 	const [requestShow, setRequestShow] = useState();
+	const [totalDeposite, setTotalDeposite] = useState(0);
+	const [totalWithdrawal, setTotalWithdrawal] = useState(0);
+	const [totalBalance, setTotalBalance] = useState(0);
+
 	const [refresh, setRefresh] = useState(false);
 
 	const [vehicles, setVehicles] = useState();
@@ -30,12 +34,16 @@ function UserTransaction() {
 			url: apiPath.getTraByUserId + '/' + id,
 			method: 'GET',
 			onSuccess: (data) => {
+				let result = data?.data
 				console.log("datadata================>>>>>>>>>>>",data.data)
 				let debitArray = []
 				let creditArray = []
-				data?.data?.get.map((item,i)=>{
+				result?.get.map((item,i)=>{
 					return item.transaction_type === "Debit" && debitArray.push(item) || item.transaction_type === "Credit" && creditArray.push(item)   
 				})
+				setTotalDeposite(result?.DepositeResult[0]?.totalAmount)
+				setTotalWithdrawal(result?.withdrawalResult[0]?.totalAmount)
+				setTotalBalance(result?.totalAmount?.balance)
 				setBetList(data.data.betData)
 				setDebitList(debitArray)
 				setCreditList(creditArray)
@@ -192,7 +200,11 @@ function UserTransaction() {
 
 	return (
 		<>
-			
+			<div style={{display:"flex",justifyContent:"space-around"}}>
+			<h3>Total Balance:  {totalBalance}</h3>
+			<h3>Total Withdrawal:  {totalWithdrawal}</h3>
+			<h3>Total Deposite:  {totalDeposite}</h3>
+			</div>
 
 			<Row gutter={24}>
 				<Col xs={12} lg={12}>

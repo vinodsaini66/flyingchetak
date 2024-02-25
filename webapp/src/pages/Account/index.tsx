@@ -114,7 +114,7 @@ export const Account = () => {
                                   </div>
                                     <hr/>
                                      <div className="text-center">
-                                   <h2 className="text-white mb-0 mt-4"><i className="fa fa-inr" ></i>{walletDetails?.balance}</h2>
+                                   <h2 className="text-white mb-0 mt-4"><i className="fa fa-inr" ></i>{walletDetails?.balance || 0}</h2>
                                     <p> Total Balance</p>
                                    </div>
 

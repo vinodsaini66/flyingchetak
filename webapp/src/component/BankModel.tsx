@@ -19,7 +19,7 @@ const BankModel = ({ isOpen, onClose,setOpen,getProfile, children }:any) => {
     })
     const { request } = useRequest()
     const { userProfile } = useContext(AuthContext)
-    console.log("userProfile",userProfile.bank_info)
+    
     useEffect(()=>{
       if(userProfile?.bank_info){
         setBankInfo({

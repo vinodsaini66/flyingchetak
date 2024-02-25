@@ -5,6 +5,7 @@ import Helper from '../../helpers/Helper';
 import AdminInfo from '../../models/AdminInfo';
 import Transaction from "../../models/TransactionSetting"
 import Bet from '../../models/Bet';
+import WalletSettings from '../../models/WalletSettings';
 const { ObjectId } = require('mongodb');
 
 export class TransactionController {
@@ -71,12 +72,45 @@ static async getTransactionByUserId(req, res, next) {
 			  ]
 			});
 		const betData = await Bet.find({user_id:id})
+		const totalAmount = await WalletSettings.findOne({userId:id})
+		const Pipeline = [
+			{
+			  $match: {
+				payee: id,
+				transaction_type: "Debit",
+			  },
+			},
+			{
+			  $group: {
+				_id: null,
+				totalAmount: { $sum: "$amount" },
+			  },
+			},
+		  ];
+		  const Pipeline1 = [
+			{
+			  $match: {
+				payee: id,
+				transaction_type: "Credit",
+			  },
+			},
+			{
+			  $group: {
+				_id: null,
+				totalAmount: { $sum: "$amount" },
+			  },
+			},
+		  ];
+		  
+		  const withdrawalResult = await Transaction.aggregate(Pipeline);
+		const DepositeResult = await Transaction.aggregate(Pipeline1)
+
 
 		return _RS.ok(
 			res,
 			"Success",
 			'Transaction Found Successfully',
-			{get,betData},
+			{get,betData,totalAmount,withdrawalResult,DepositeResult},
 			startTime
 		);
 	} catch (err) {

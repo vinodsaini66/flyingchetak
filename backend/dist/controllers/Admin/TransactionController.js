@@ -13,6 +13,7 @@ exports.TransactionController = void 0;
 const ResponseHelper_1 = require("../../helpers/ResponseHelper");
 const TransactionSetting_1 = require("../../models/TransactionSetting");
 const Bet_1 = require("../../models/Bet");
+const WalletSettings_1 = require("../../models/WalletSettings");
 const { ObjectId } = require('mongodb');
 class TransactionController {
     static getTransaction(req, res, next) {
@@ -70,7 +71,38 @@ class TransactionController {
                     ]
                 });
                 const betData = yield Bet_1.default.find({ user_id: id });
-                return ResponseHelper_1.default.ok(res, "Success", 'Transaction Found Successfully', { get, betData }, startTime);
+                const totalAmount = yield WalletSettings_1.default.findOne({ userId: id });
+                const Pipeline = [
+                    {
+                        $match: {
+                            payee: id,
+                            transaction_type: "Debit",
+                        },
+                    },
+                    {
+                        $group: {
+                            _id: null,
+                            totalAmount: { $sum: "$amount" },
+                        },
+                    },
+                ];
+                const Pipeline1 = [
+                    {
+                        $match: {
+                            payee: id,
+                            transaction_type: "Credit",
+                        },
+                    },
+                    {
+                        $group: {
+                            _id: null,
+                            totalAmount: { $sum: "$amount" },
+                        },
+                    },
+                ];
+                const withdrawalResult = yield TransactionSetting_1.default.aggregate(Pipeline);
+                const DepositeResult = yield TransactionSetting_1.default.aggregate(Pipeline1);
+                return ResponseHelper_1.default.ok(res, "Success", 'Transaction Found Successfully', { get, betData, totalAmount, withdrawalResult, DepositeResult }, startTime);
             }
             catch (err) {
                 next(err);
