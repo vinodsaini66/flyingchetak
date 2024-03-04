@@ -76,7 +76,7 @@ class UserInfoController {
                             account_holder: 1,
                         },
                     }
-                ]);
+                ]).sort({ created_at: -1 });
                 return ResponseHelper_1.default.api(res, true, "Users Found Successfully", user, startTime);
             }
             catch (error) {
@@ -108,6 +108,25 @@ class UserInfoController {
                     return ResponseHelper_1.default.notFound(res, 'NOTFOUND', '', isUsersExist, startTime);
                 }
                 return ResponseHelper_1.default.ok(res, 'SUCCESS', 'Total No of Users found successfully', { users: isUsersExist }, startTime);
+            }
+            catch (err) {
+                next(err);
+            }
+        });
+    }
+    static statusChange(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const startTime = new Date().getTime();
+            try {
+                const { id } = req.params;
+                console.log("id=======>>>>>>>>>>", id);
+                let isUsersExist = yield User_1.default.findOne({ _id: id });
+                if (!isUsersExist) {
+                    return ResponseHelper_1.default.notFound(res, 'NOTFOUND', '', isUsersExist, startTime);
+                }
+                (isUsersExist.is_active = true ? !isUsersExist.is_active : isUsersExist.is_active);
+                isUsersExist.save();
+                return ResponseHelper_1.default.ok(res, 'SUCCESS', 'Status updated successfully', { users: isUsersExist }, startTime);
             }
             catch (err) {
                 next(err);

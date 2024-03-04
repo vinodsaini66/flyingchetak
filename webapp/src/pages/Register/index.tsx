@@ -124,33 +124,33 @@ export const Register = () => {
                             <p className="text-center">Please enter your details</p>
                            <hr/>
                            <div className="form-group ">
-                          <img className="input_icon" src="img/name1.png" />
-                          <input type="text" name="name"  className="form-control" value={userInput.name} placeholder="Enter name" onChange={handleChange} />
+                          <img className="input_icon" src="../../img/name1.png" />
+                          <input type="text" name="name"  className="form-control" value={userInput.name} placeholder="Enter Name" onChange={handleChange} />
                               <span style={{color:"red"}}>{userInputError.nameError}</span>
                          </div>
                          <div className="form-group ">
-                          <img className="input_icon" src="img/email.png" />
-                          <input type="text" name="email" className="form-control" value={userInput.email} placeholder="Enter email" onChange={handleChange} />
+                          <img className="input_icon" src="../../img/email.png" />
+                          <input type="text" name="email" className="form-control" value={userInput.email} placeholder="Enter Email" onChange={handleChange} />
                           <span style={{color:"red"}}>{userInputError.emailError}</span>
                          </div>
                          <div className="form-group ">
-                          <img className="input_icon" src="img/call.svg" />
-                          <input type="text" name="mobile_number" className="form-control" value={userInput.mobile_number} placeholder="Phone number" onChange={handleChange} />
+                          <img className="input_icon" src="../../img/call.svg" />
+                          <input type="text" name="mobile_number" className="form-control" value={userInput.mobile_number} placeholder="Phone Number" onChange={handleChange} />
                           <span style={{color:"red"}}>{userInputError.mobile_numberError}</span>
                          </div>
                          <div className="form-group ">
-                            <img className="input_icon" src="img/key.svg" />
-                            <input type="text" name="password" className="form-control" value={userInput.password} placeholder="Please enterPassword" onChange={handleChange} />
+                            <img className="input_icon" src="../../img/key.svg" />
+                            <input type="text" name="password" className="form-control" value={userInput.password} placeholder="Please Enter Password" onChange={handleChange} />
                             <span style={{color:"red"}}>{userInputError.passwordError}</span>
                          </div>
                           <div className="form-group ">
-                           <img className="input_icon" src="img/key.svg" />
-                           <input type="text" name="Cpassword" className="form-control" value={userInput.Cpassword} placeholder="Please enterConfirm password" onChange={handleChange} />
+                           <img className="input_icon" src="../../img/key.svg" />
+                           <input type="text" name="Cpassword" className="form-control" value={userInput.Cpassword} placeholder="Please Enter Confirm Password" onChange={handleChange} />
                             <span style={{color:"red"}}>{userInputError.CpasswordError}</span>
                          </div>
                           <div className="form-group ">
-                            <img className="input_icon" src="img/star_rate.svg" />
-                            <input type="text" name="referral_from_id" className="form-control" value={userInput.referral_from_id} placeholder="Please enter the invitation code" disabled={RFcode?true:false} onChange={handleChange} />
+                            <img className="input_icon" src="../../img/star_rate.svg" />
+                            <input type="text" name="referral_from_id" className="form-control" value={userInput.referral_from_id} placeholder="Please Enter The Invitation Code" disabled={RFcode?true:false} onChange={handleChange} />
                          </div>
                           <div className="form-group text-center">
                            <button  type="submit" onClick={handleSubmit} className="btn btn2">Register</button>

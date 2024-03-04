@@ -13,9 +13,10 @@ class UserInfoRouter {
         this.router.post("/add-edit", Authentication_1.default.admin, UserinfoController_1.UserInfoController.addEdit);
     }
     get() {
-        this.router.get('/list', UserinfoController_1.UserInfoController.list);
-        this.router.get('/no-of-user', UserinfoController_1.UserInfoController.totalUser);
-        this.router.get('/getuser/view/:id', UserinfoController_1.UserInfoController.viewUser);
+        this.router.get('/list', Authentication_1.default.admin, UserinfoController_1.UserInfoController.list);
+        this.router.get('/status/:id', Authentication_1.default.admin, UserinfoController_1.UserInfoController.statusChange);
+        this.router.get('/no-of-user', Authentication_1.default.admin, UserinfoController_1.UserInfoController.totalUser);
+        this.router.get('/getuser/view/:id', Authentication_1.default.admin, UserinfoController_1.UserInfoController.viewUser);
         this.router.get("/withdrawal/change-status/:id", Authentication_1.default.admin, UserinfoController_1.UserInfoController.withdrawalStatusChange);
     }
 }

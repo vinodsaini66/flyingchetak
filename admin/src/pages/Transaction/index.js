@@ -72,6 +72,11 @@ function Transaction() {
 			},
 		},
 		{
+			title: 'Transaction Type',
+			dataIndex: 'transaction_type',
+			key: 'transaction_type',
+		},
+		{
 			title: 'Payment Status',
 			key: 'payment_status',
 			render: (_, { payment_status }) => {

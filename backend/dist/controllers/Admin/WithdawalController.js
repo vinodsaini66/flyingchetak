@@ -11,7 +11,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WithdrawalController = void 0;
 const ResponseHelper_1 = require("../../helpers/ResponseHelper");
+const AdminSetting_1 = require("../../models/AdminSetting");
 const TransactionSetting_1 = require("../../models/TransactionSetting");
+const User_1 = require("../../models/User");
 const WalletSettings_1 = require("../../models/WalletSettings");
 const express = require("express");
 const app = express();
@@ -79,7 +81,7 @@ class WithdrawalController {
                     // {
                     //   $limit: Number(limit),
                     // },
-                ]);
+                ]).sort({ created_at: -1 });
                 return ResponseHelper_1.default.api(res, true, "Withdrawal Found Successfully", withdrawal, startTime);
             }
             catch (error) {
@@ -89,14 +91,37 @@ class WithdrawalController {
     }
     static _changeStatus(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
-            let { _id, amount, status } = req.body;
+            let { _id, amount, status, type } = req.body;
             try {
+                console.log("amountamountamount", type, status, _id);
                 const startTime = new Date().getTime();
                 let statusChange = yield TransactionSetting_1.default.updateOne({ _id: _id }, { $set: { status: status } });
-                if (status == "Rejected") {
+                if ((type == "Credit" && status == "Success") || (type == "Debit" && status == "Reject")) {
                     let getTra = yield TransactionSetting_1.default.findOne({ _id: _id });
                     let reSendMoney = yield WalletSettings_1.default.updateOne({ userId: getTra.payee }, { $inc: { balance: getTra.amount } });
-                    console.log("elseelseelse", reSendMoney);
+                    let userWithRefer = yield User_1.default.findOne({ _id: getTra.payee });
+                    if (userWithRefer.referral_from_id && type == "Credit") {
+                        let getAll = yield TransactionSetting_1.default.find({ payee: getTra.payee, status: "Success" });
+                        console.log("userWithRefer++++++.>>>>>>>>>", getAll.length);
+                        if (getAll.length == 1) {
+                            let txnRefId = 'CHETAK' + new Date().getTime();
+                            let getAdminSetting = yield AdminSetting_1.default.findOne();
+                            let getFromUser = yield User_1.default.findOne({ referral_id: userWithRefer.referral_from_id });
+                            let walletUpdate = yield WalletSettings_1.default.updateOne({ userId: getFromUser._id }, { $inc: { balance: Number(getAdminSetting.referral_bonus) } });
+                            let add = {
+                                payee: getFromUser._id,
+                                receiver: getFromUser._id,
+                                amount: Number(getAdminSetting.referral_bonus),
+                                transaction_mode: "Referral",
+                                transaction_type: "Credit",
+                                // wallet_id:previousBalance._id,
+                                transaction_id: txnRefId,
+                                status: "Success"
+                            };
+                            let createTra = yield TransactionSetting_1.default.create(add);
+                            console.log("userWithRefer++++++.>>>>>>>>>", getFromUser, getAdminSetting);
+                        }
+                    }
                 }
                 if (statusChange) {
                     return ResponseHelper_1.default.api(res, true, "Withdrawal Status Updated Successfully", {}, startTime);

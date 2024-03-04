@@ -42,7 +42,7 @@ export const Graph = ({x}:any) => {
         fillOpacity: 0.3,
         lineThickness: 4,
         type: "area",
-        markerImageUrl: "../../img/ezgif1.png",
+        markerImageUrl: "../../img/horse-running.gif",
         dataPoints: dps,
       },
     ],
@@ -51,11 +51,16 @@ export const Graph = ({x}:any) => {
   const positionMarkerImage = (imageMarker: any, index: number) => {
     const pixelX = chartRef.current?.axisX[0].convertValueToPixel(options?.data[0]?.dataPoints[index]?.x) || 0;
     const pixelY = chartRef.current?.axisY[0].convertValueToPixel(options?.data[0]?.dataPoints[index]?.y) || 0;
-
+    console.log("pixels===>>>",pixelX,pixelY)
     imageMarker.style.position = 'absolute';
     imageMarker.style.display = 'block';
-    imageMarker.style.top = `${pixelY}px`;
-    imageMarker.style.left = `${pixelX}px`;
+    imageMarker.style.width = "20vw" 
+    // imageMarker.style.marginTop = "17%" 
+    // imageMarker.style.marginLeft = "20%"
+    // imageMarker.style.height = "50vh" 
+    imageMarker.style.top = `${(pixelY)}px`;
+    imageMarker.style.left = `${(pixelX)}px`;
+
   };
 
   useEffect(() => {
@@ -74,8 +79,8 @@ export const Graph = ({x}:any) => {
       <img
         ref={(img) => img && positionMarkerImage(img, options.data[0]?.dataPoints?.length - 1)}
         src={options?.data[0]?.markerImageUrl}
-        style={{ display: 'none', top: dps[dps.length-1].y + 'px', width:"100px", height:"100px",position:"relative",
-        left: dps[dps.length-1].x + 'px'}}
+        // style={{ display: 'none', top: dps[dps.length-1].y + 'px', width:"100px", height:"100px",position:"relative",
+        // left: dps[dps.length-1].x + 'px'}}
       />
     </div>}
     </>

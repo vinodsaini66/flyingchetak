@@ -14,7 +14,7 @@ import { GameController } from './controllers/App/GameController';
 const app = express();
 const cookieParser = require('cookie-parser');
 
-const SEND_INTERVAL = 500;
+const SEND_INTERVAL = 1000;
 
 export class Server {
 	public app: express.Application = express();
@@ -103,10 +103,47 @@ export class Server {
 		  'Content-Type': 'text/event-stream',
 		});
 		const sseId = new Date().toDateString();
-	  
+		let funCall = 1 
+		const xValueGet = async () => {
+			funCall = 1
+			const gameInterval = setInterval(async () => {
+				const gameData: {
+					message: string;
+					status: boolean | number;
+					data: any;
+					error: any;
+				} = await GameController.getXValue();
+				if(gameData.data.timer.toFixed(2) == 0.00 && funCall == 1){
+					funCall += 1
+					clearInterval(gameInterval);
+					this.writeEvent(
+						res,
+						sseId,
+						JSON.stringify({
+						message: gameData.message,
+						status: gameData.status,
+						data: gameData.data
+						})
+					);
+					setTimeout(() => xValueGet(), 10000);
+				}
+				else{
+					this.writeEvent(
+						res,
+						sseId,
+						JSON.stringify({
+						message: gameData.message,
+						status: gameData.status,
+						data: gameData.data
+						})
+					);
+				}
+			},SEND_INTERVAL);
+		}
+		xValueGet();
 		const handleGameInterval = async () => {
 			let timeStart = 0;
-		  const gameInterval = setInterval(async () => {
+		//   const gameInterval = setInterval(async () => {
 			console.log("IntervalCall");
 			const gameData: {
 			  message: string;
@@ -114,10 +151,9 @@ export class Server {
 			  data: any;
 			  error: any;
 			} = await GameController.handleGame();
-			console.log("gameData =====", gameData);
 			if (!!gameData?.data?.is_game_end) {
 			  console.log("gameEnd=====APICAll");
-			  clearInterval(gameInterval);
+			//   clearInterval(gameInterval);
 			  this.writeEvent(
 				res,
 				sseId,
@@ -133,7 +169,7 @@ export class Server {
 	  
 			if (!!gameData.error) {
 			  this.handleErrors();
-			  // clearInterval(gameInterval);
+			//   clearInterval(gameInterval);
 			}
 	  
 			this.writeEvent(
@@ -146,7 +182,8 @@ export class Server {
 				startTime: startTime,
 			  })
 			);
-		  }, SEND_INTERVAL);
+			setTimeout(() => handleGameInterval(), 7000);
+		//   }, 100000);
 		} // Bind the function to the current context
 	  
 		handleGameInterval();

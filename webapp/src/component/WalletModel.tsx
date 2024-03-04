@@ -3,12 +3,21 @@ import WalletVal from "../validation/WalletVal";
 import useRequest from "../hooks/useRequest";
 import { apiPath } from "../constant/ApiRoutes";
 import { Severty, ShowToast } from "../helper/toast";
+import QrCodeModels from "./QrCodeModel";
+import Loader from "./Loader";
+// import {isMobile} from 'react-device-detect';
+
  
 const WalletModal = ({ onClose,setOpen, children }:any) => {
     const [balance, setBalance] = useState<number>(0)
     const [balanceError, setBalanceError] = useState<string>("")
     const [channelId, setChannelId] = useState<string>("")
     const [channelIdError, setChannelIdError] = useState<string>("")
+    const [QrCodeModelsOpen, setQrCodeModelsOpen] = useState<boolean>(false)
+    const [isLoading, setIsLoading] = useState<boolean>(false)
+    const [qrData, setQrData] = useState<object>({})
+
+
 
     const [channelList, setChannelList] = useState<any>()
 
@@ -22,8 +31,6 @@ const WalletModal = ({ onClose,setOpen, children }:any) => {
           url: apiPath.getChannels,
           method: "GET",
           onSuccess: (data) => {
-            // setLoading(false);
-            console.log("channelroutesget",data?.data?.data)
             if (data.status) {
               setChannelList(data?.data?.data)
             } else {
@@ -44,6 +51,12 @@ const WalletModal = ({ onClose,setOpen, children }:any) => {
         setBalance(value)
     }
 
+    const handleChannelChange =  (e:any) => {
+      const {name,value} = e.target
+      setChannelId(value)
+      value?setChannelIdError(""):setChannelIdError("This field is required")
+    }
+
   
 
    const handleSubmit = () => {
@@ -53,17 +66,21 @@ const WalletModal = ({ onClose,setOpen, children }:any) => {
                     balance:balance,
                     _id:channelId
                 }
-
+                console.log("channelIdIdIdId",channelId)
     if(!channelId || channelId == "")return setChannelIdError("This field is required")
+            setIsLoading(true)
             request({
                 url: apiPath.thirdPartyBalanceRequest,
                 method: "POST",
                 data: userInput,
                 onSuccess: (data) => {
-                  // setLoading(false);
-                  console.log("walletwallet",data)
+                  setIsLoading(false);
                   if (data.status) {
                     ShowToast(data.message, Severty.SUCCESS);
+                    // if(isMobile){
+                    //   setQrCodeModelsOpen(true)
+                    //   setQrData(data?.data?.data.upi_intent)
+                    // }
                     let newWin = window.open(data.data.data.payment_url,"_blank")
                     newWin?.focus()
                     onClose()
@@ -120,8 +137,10 @@ const WalletModal = ({ onClose,setOpen, children }:any) => {
                               <span style={{color:"red"}}>{balanceError}</span>
                             </div>
                             <div className="form-group">
-                            <select className="form-control channel_dropdown" onClick={(e:any)=>setChannelId(e.target.value)}>
-                              <option  value="">Select</option>
+                              <label>Select Payment Channel</label>
+                            <select className="form-control channel_dropdown" style={{background:"#16142a",height:"auto"}} onClick={handleChannelChange}
+                             >
+                              <option  value = "">Select</option>
                               {channelList?.length>0 && channelList.map((item:any)=>{
                                 return <option value={item._id}>{item.name}</option>
                               })}
@@ -130,16 +149,23 @@ const WalletModal = ({ onClose,setOpen, children }:any) => {
                             </div>
                            
                              <div className="form-group">
-                              <button  type="submit" onClick={handleSubmit}  className="btn_man w100">+Add</button>
+                              <button type="submit" onClick={handleSubmit} disabled={isLoading} className="btn_man w100">{isLoading && <Loader/>}+Add</button>
+                              
                             </div>
                             <div className="form-group">
-                              <button  type="button" onClick={()=>onClose(setOpen)} className="btn_man w100">Close</button>
+                              <button type="button" onClick={()=>onClose(setOpen)} className="btn_man w100">Close</button>
                             </div>
                             </div>
                     </div>
                      </div>
                 </>
             </div>
+            {/* {
+              QrCodeModelsOpen && <QrCodeModels 
+               qrData={qrData}
+               setQrCodeModelsOpen={setQrCodeModelsOpen}
+               />
+            } */}
         </div>
     );
 };

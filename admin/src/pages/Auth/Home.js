@@ -15,7 +15,10 @@ function Home() {
 	const [loading, setLoading] = useState(false);
 	const [transaction, setTransaction] = useState([]);
 
-	const [earnings, setEarnings] = useState({});
+	const [earnings, setEarnings] = useState({
+		Debit:0,
+		Credit:0
+	});
 
 	const [dashboard, setDashboard] = useState({
 		customerCount: 0,
@@ -39,34 +42,40 @@ function Home() {
 
 	const earningsColumn = [
 		{
-			title: 'Earnings (USD)',
-			value: `${earnings && earnings.balance ? earnings.balance : 0}`,
+			title: 'Total Withdrawal Amount',
+			value: `${earnings && earnings?.Debit ? earnings.Debit : 0}`,
 			icon: <i class='fas fa-money-bill'></i>,
 		},
 		{
-			title: 'Total Balance (USD)',
+			title: 'Total Deposite',
 			value: `${
-				earnings && earnings.total_balance ? earnings.total_balance : 0
+				earnings && earnings?.Credit ? earnings.Credit : 0
 			}`,
 			icon: <i class='fas fa-balance-scale'></i>,
 		},
 		{
-			title: 'Revenue (USD)',
+			title: 'Total Earning',
+			value: `${earnings && earnings?.Debit ? earnings?.Credit - +earnings?.Debit : 0}`,
+			icon: <i class='fas fa-chart-bar'></i>,
+		},
+		{
+			title: 'Total Bot',
 			value: `${earnings && earnings.revenue ? earnings.revenue : 0}`,
 			icon: <i class='fas fa-chart-bar'></i>,
 		},
+		
 	];
 
 	const transactionColumn = [
 		{
 			title: 'Transaction Id',
-			render: (_, { transaction_id, _id }) => {
+			render: (_, { transaction_id, user_id }) => {
 				return transaction_id ? (
 					<Link
 						target='_blank'
 						rel='noreferrer noopener'
 						className='cap'
-						to={`/report/view/${_id}`}
+						to={`/user/view/transactions/${user_id}`}
 					>
 						{transaction_id ? transaction_id : '-'}
 					</Link>
@@ -137,15 +146,36 @@ function Home() {
 				if (data.data.tentransaction && data.data.tentransaction.length > 0) {
 					setTransaction(data.data.tentransaction);
 				}
-				if (!!data.data.earnings) {
-					setEarnings(data.data.earnings);
-				}
+				// if (!!data.data.earnings) {
+				// 	setEarnings(data.data.earnings);
+				// }
 			},
 			onError: (error) => {
 				ShowToast(error, Severty.ERROR);
 			},
 		});
+		dashboardBoxData()
 	}, []);
+
+	const dashboardBoxData = () => {
+		setLoading(true);
+		request({
+			url: apiPath.dashboardBox,
+			method: 'GET',
+			onSuccess: (data) => {
+				setLoading(false);
+				const debit = data.data.data.filter((item,i)=>item._id == "Debit" )
+				const credit = data.data.data.filter((item,i)=>item._id == "Credit")
+				setEarnings({
+					Debit:debit[0].totalAmount,
+					Credit:credit[0].totalAmount
+				})
+			},
+			onError: (error) => {
+				ShowToast(error, Severty.ERROR);
+			},
+		});
+	}
 
 	return (
 		<>

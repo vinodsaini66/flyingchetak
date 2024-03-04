@@ -1,4 +1,4 @@
-import { Avatar, Badge, Card, Col, Image, Row, Skeleton, Table, Tag } from 'antd';
+import { Avatar, Badge, Button, Card, Col, Form, Image, Input, Modal, Row, Skeleton, Table, Tag } from 'antd';
 import moment from 'moment';
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
@@ -23,6 +23,8 @@ function UserTransaction() {
 	const [totalDeposite, setTotalDeposite] = useState(0);
 	const [totalWithdrawal, setTotalWithdrawal] = useState(0);
 	const [totalBalance, setTotalBalance] = useState(0);
+	const [visible,setVisible] = useState(false)
+	const [type,setType] = useState("")
 
 	const [refresh, setRefresh] = useState(false);
 
@@ -55,7 +57,7 @@ function UserTransaction() {
 		});
 	};
 
-	const onClickStatusChange = (_id, status) => {
+	const onClickStatusChange = (_id, status,type) => {
 		if (
 			!(
 				status === WITHDRAW_STATUS.approved ||
@@ -63,21 +65,22 @@ function UserTransaction() {
 				status === WITHDRAW_STATUS.success
 			)
 		) {
-			changeBookingStatus(_id, status);
+			changeBookingStatus(_id, status,type);
 		}
 	};
 	
-	const changeBookingStatus = (id, status) => {
+	const changeBookingStatus = (id, status,type) => {
 		setRequestId(id);
 		setRequestStatus(status);
 		setRequestShow(true);
+		setType(type)
 	};
 
 	const column = [
 		{
-			title: 'Payee',
-			dataIndex: 'payee',
-			key: 'payee',
+			title: 'Transaction Id',
+			dataIndex: 'transaction_id',
+			key: 'transaction_id',
 			// render: (_, { vehicle_number }) => {
 			// 	return vehicle_number;
 			// },
@@ -85,12 +88,12 @@ function UserTransaction() {
 		{
 			title: 'Status',
 			key: 'status',
-			render: (_, { status, _id }) => {
+			render: (_, { status, _id, transaction_type}) => {
 				console.log("statusstatus",status,_id)
 				let color =
 					status === 'Success'
 						? 'green'
-						: status === 'Rejected'
+						: status === 'Reject'
 						? 'red'
 						: 'yellow';
 				return (
@@ -98,7 +101,7 @@ function UserTransaction() {
 						<Tag
 							color={color}
 							key={status}
-							onClick={() => onClickStatusChange(_id, status)}
+							onClick={() => onClickStatusChange(_id, status,transaction_type)}
 						>
 							{status === WITHDRAW_STATUS.pending
 								? 'Pending'
@@ -204,11 +207,19 @@ function UserTransaction() {
 			<h3>Total Balance:  {totalBalance}</h3>
 			<h3>Total Withdrawal:  {totalWithdrawal}</h3>
 			<h3>Total Deposite:  {totalDeposite}</h3>
+			<Button
+                      className={"cap"}
+                      onClick={(e) => {
+                        setVisible(true);
+                      }}
+                    >
+                      Check Order
+                    </Button>
 			</div>
-
 			<Row gutter={24}>
+				
 				<Col xs={12} lg={12}>
-					<Card title={'Debit / Deposite List'}>
+					<Card title={'Debit / Withdrawal List'}>
 						<div className='table-responsive customPagination'>
 							<Table
 								loading={loading}
@@ -229,7 +240,7 @@ function UserTransaction() {
 					</Card>
 				</Col>
 				<Col xs={12} lg={12}>
-					<Card title={'Credit / Withdrawal List'}>
+					<Card title={'Credit / Deposite List'}>
 						<div className='table-responsive customPagination'>
 							<Table
 								loading={loading}
@@ -276,6 +287,7 @@ function UserTransaction() {
 			{requestStatus && (
 				<WithdrawalStatus
 					show={requestShow}
+					type = {type}
 					hide={() => {
 						setRequestShow(false);
 					}}
@@ -284,8 +296,153 @@ function UserTransaction() {
 					statusRefresh={() => setRefresh((prev) => !prev)}
 				/>
 			)}
+
+{visible && (
+	<AddFrom
+	  show={visible}
+	  hide={() => {
+		setVisible(false);
+	  }}
+	  type={params.type}
+	  refresh={() => setRefresh((prev) => !prev)}
+	/>
+  )}
 		</>
 	);
 }
+
+const AddFrom = ({ show, hide, type, refresh }) => {
+const [form] = Form.useForm();
+const { request } = useRequest();
+const [showData, setShowData] = useState({})
+const [orderStatus, setOrderStatus] = useState(false)
+const [loading, setLoading] = useState(false);
+
+
+const onCreate = (values) => {
+const {  client_txn_id,txn_date } = values;
+const payload = {};
+setLoading(true);
+//   payload.date = date;
+payload.client_txn_id = client_txn_id;
+payload.txn_date = moment(txn_date).format("DD-MM-YYYY");
+
+
+
+request({
+  url: apiPath.checkOrderStatus,
+  method: "POST",
+  data: payload,
+  onSuccess: (data) => {
+	setLoading(false);
+	setOrderStatus(data.status)
+	if (data.status) {
+		console.log("fshdvfhsvfsdfgsd",data)
+		setShowData(data.data.data)
+	  ShowToast(data.message, Severty.SUCCESS);
+	//   hide();
+	//   refresh();
+	} else {
+		setShowData(data.data)
+	  ShowToast(data.message, Severty.ERROR);
+	}
+  },
+  onError: (error) => {
+	ShowToast(error.response.data.message, Severty.ERROR);
+	setLoading(false);
+  },
+});
+};
+
+return (
+<Modal
+  visible={show}
+  width={400}
+  title={"Check Order"}
+  okText={!orderStatus?"Ok":""}
+  onCancel={hide}
+  okButtonProps={{
+	form: "create",
+	htmlType: "submit",
+	loading: loading,
+  }}
+>
+	{console.log("showDatashowData",showData,orderStatus)}
+  {!orderStatus?<Form id="create" form={form} onFinish={onCreate} layout="vertical">
+	<Row>
+	  
+	  <Col span={24}>
+		<Form.Item
+		  label={`Client txn_id`}
+		  name="client_txn_id"
+		  rules={[
+			{ required: true, message: "Please enter Client Txn Id!" },
+			{
+			  min: 6,
+			  message: "id should contain atleast 6 characters!",
+			},
+		  ]}
+		>
+		  <Input
+			autoComplete="off"
+			placeholder={`Enter Client Txn Id`}
+			className="cap"
+		  />
+		</Form.Item>
+	  </Col>
+
+
+	  <Col span={24}>
+	  <Form.Item
+		  label={`Txn Date`}
+		  name="txn_date"
+		  rules={[
+			{ required: true, message: "Please enter the txn_date!" }
+		  ]}
+		>
+		  <Input
+			autoComplete="off"
+			placeholder={`Enter Key`}
+			className="cap"
+			type="date"
+			format="dd-mm-yyyy"
+		  />
+		</Form.Item>
+	  </Col>
+	  {/* <Col span={24}>
+		<Form.Item
+		  label={`Date`}
+		  name="date"
+		  rules={[
+			{ required: true, message: "Please enter the date!" },
+		  ]}
+		>
+		  <Input
+			autoComplete="off"
+			placeholder={`Enter Date`}
+			className="cap"
+			type="date"
+		  />
+		</Form.Item>
+	  </Col> */}
+	</Row>
+  </Form>:
+  <div>
+	<div>
+		<h3>Name:-    {showData?.customer_name} </h3>
+		<h3>Email:-    {showData?.customer_email}</h3>
+		<h3>Mobile Number:-    {showData?.customer_mobile}</h3>
+		<h3>amount:-    {showData?.amount}</h3>
+		<h3>Client transaction Id:-    {showData?.client_txn_id}</h3>
+		
+		<h3>Status:-    {showData?.status}</h3>
+		<h3>Date:-    {showData?.txnAt}</h3>
+
+	</div>
+  </div>
+  }
+</Modal>
+);
+};
 
 export default UserTransaction;

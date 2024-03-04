@@ -67,5 +67,29 @@ class DashboardController {
             }
         });
     }
+    static dashboardBoxData(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const startTime = new Date().getTime();
+                let getTransaction = yield TransactionSetting_1.default.aggregate([
+                    {
+                        $match: {
+                            transaction_type: { $in: ["Debit", "Credit"] } // Filter only debit and credit transactions
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: "$transaction_type",
+                            totalAmount: { $sum: "$amount" }
+                        }
+                    }
+                ]);
+                return ResponseHelper_1.default.ok(res, 'SUCCESS', 'Dashboard data has been get Successfully', getTransaction, startTime);
+            }
+            catch (err) {
+                next(err);
+            }
+        });
+    }
 }
 exports.DashboardController = DashboardController;

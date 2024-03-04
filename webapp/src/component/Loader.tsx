@@ -5,7 +5,7 @@ const antIcon = (
     <LoadingOutlined
         style={{
             fontSize: 35,
-            color: `#000000`,
+            color: `#fff`,
             
         }}
         spin

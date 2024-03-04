@@ -202,9 +202,6 @@ function Edit() {
                   <Form.Item
                     label='Facebook'
                     name='facebook'
-                    rules={[
-                      { required: true, message: "Please enter the facebook url!" },
-                    ]}
                   >
                     <Input
                       autoComplete='off'
@@ -216,9 +213,6 @@ function Edit() {
                   <Form.Item
                     label='Instagram'
                     name='instagram'
-                    rules={[
-                      { required: true, message: "Please enter the instagram url!" },
-                    ]}
                   >
                     <Input
                       autoComplete='off'
@@ -238,7 +232,7 @@ function Edit() {
               {/* TODO: should there be 2 fields for overall bet commission and per bet commission, for now just taking the overall one */}
               <Col span={24} xs={24} sm={12} lg={12} xxl={8}>
                 <Form.Item
-                  label='Bet Commission'
+                  label='Bet Commission (%)'
                   name='bet_commission'
                   rules={[
                     { required: true, message: "Please enter the email!" },

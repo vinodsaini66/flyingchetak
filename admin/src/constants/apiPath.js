@@ -5,6 +5,7 @@ let pathObj = {
   baseURL: baseURL,
   // assetURL: ASSET_URL,
   dashboard: "admin/dashboard/get",
+  dashboardBox:"admin/dashboard/box-data/get",
 
   // Auth API
   logout: "admin/auth/logout",
@@ -25,6 +26,10 @@ let pathObj = {
   channelGet:"admin/channel/get",
   channelDelete:"admin/channel/remove",
 
+  addEditUtr:"admin/channel/add-edit",
+  getUtr:"admin/channel/get-utr",
+  checkOrderStatus:"admin/channel/utr/check_order_status",
+
   adminInfoUpdate:"admin/details/update",
   adminInfoGet:"admin/details/get",
 
@@ -36,7 +41,7 @@ let pathObj = {
   // Customer APIs
   listCustomer: "admin/user-info-router/list",
   addEditCustomer: "admin/user-info-router/add-edit",
-  statusCustomer: "admin/customer/status",
+  statusCustomer: "admin/user-info-router/status",
   withdrawal_Active:"admin/user-info-router/withdrawal/change-status",
   viewCustomer: "admin/user-info-router/getuser/view",
 

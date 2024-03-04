@@ -21,8 +21,6 @@ const EmailTemplate_1 = require("../../models/EmailTemplate");
 const WalletSettings_1 = require("../../models/WalletSettings");
 const HistorySetting_1 = require("../../models/HistorySetting");
 const moment = require("moment");
-const AdminSetting_1 = require("../../models/AdminSetting");
-const TransactionSetting_1 = require("../../models/TransactionSetting");
 const WinningWallet_1 = require("../../models/WinningWallet");
 const { ObjectId } = require('mongodb');
 class AuthController {
@@ -183,23 +181,7 @@ class AuthController {
                             referral_id: referral_from_id
                         });
                         console.log("referral_id============>>>>>>>>>>>.", referral_from_id, getUserByReferral);
-                        if (getUserByReferral) {
-                            let getAdminReferralBonus = yield AdminSetting_1.default.findOne();
-                            let updateWallet = yield WalletSettings_1.default.updateOne({ userId: getUserByReferral._id }, { $inc: { balance: getAdminReferralBonus.referral_bonus } });
-                            let txnRefId = 'CHETAK' + new Date().getTime();
-                            let add = {
-                                payee: getUserByReferral._id,
-                                receiver: getUserByReferral._id,
-                                amount: Number(getAdminReferralBonus.referral_bonus),
-                                transaction_mode: "Referral",
-                                transaction_type: "Credit",
-                                // wallet_id:previousBalance._id,
-                                transaction_id: txnRefId,
-                                status: "Approved"
-                            };
-                            let transactions = yield TransactionSetting_1.default.create(add);
-                        }
-                        else {
+                        if (!getUserByReferral) {
                             return ResponseHelper_1.default.api(res, false, 'Invite Code Is Invalid', {}, startTime);
                         }
                     }
@@ -580,20 +562,25 @@ class AuthController {
             try {
                 const startTime = new Date().getTime();
                 const { name, gender, dob, language, latitude, longitude, address, country_code, mobile_number, email, } = req.body;
-                // const image = req.file.filename
                 const user = yield User_1.default.findOne({ _id: req.user.id });
                 if (!user) {
                     return ResponseHelper_1.default.api(res, false, 'UserNotFound', {}, startTime);
                 } // Replace with the mobile number or email you're checking
-                let userExistWithThisMailOrMobileNumber = yield User_1.default.find({
-                    $or: [
-                        { mobile_number: mobile_number },
-                        { email: email }
-                    ]
-                });
-                if (userExistWithThisMailOrMobileNumber.length > 0) {
-                    return ResponseHelper_1.default.api(res, false, 'Email or Mobile Number Already Exist', {}, startTime);
-                }
+                // let userExistWithThisMailOrMobileNumber = await User.find({
+                // 	$or: [
+                // 		{ mobile_number: mobile_number },
+                // 		{ email: email }
+                // 	]
+                // 	});
+                // if(userExistWithThisMailOrMobileNumber.length>0){
+                // 	return _RS.api(
+                // 		res,
+                // 		false,
+                // 		'Email or Mobile Number Already Exist',
+                // 		{},
+                // 		startTime
+                // 	);
+                // }
                 user.name = name ? name : user.name;
                 user.gender = gender ? gender : user.gender;
                 user.language = language ? language : user.language;

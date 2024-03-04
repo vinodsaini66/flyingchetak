@@ -19,6 +19,7 @@ const WalletSettings_1 = require("../../models/WalletSettings");
 const Helper_1 = require("../../helpers/Helper");
 const TransactionSetting_1 = require("../../models/TransactionSetting");
 const AdminSetting_1 = require("../../models/AdminSetting");
+const { ObjectId } = require('mongodb');
 let timer = 0;
 let gameId = "";
 class GameController {
@@ -70,7 +71,7 @@ class GameController {
         return __awaiter(this, void 0, void 0, function* () {
             const startTime = new Date().getTime();
             try {
-                const { amount } = req.body;
+                const { amount, betType, boxType } = req.body;
                 const wallet = yield WalletSettings_1.default.findOne({ userId: req.user.id });
                 const walletTransactionData = {
                     payee: req.user.id,
@@ -96,6 +97,8 @@ class GameController {
                     user_id: req.user.id,
                     status: Bet_1.BetStatus.PENDING,
                     deposit_amount: amount,
+                    betType: betType,
+                    boxType: boxType
                 };
                 const bet = yield new Bet_1.default(betData).save();
                 console.log("bet=====", bet);
@@ -212,6 +215,9 @@ class GameController {
         return __awaiter(this, void 0, void 0, function* () {
             // return true;
             try {
+                const myArray = [90, 60, 30, 40, 50];
+                const randomIndex = Math.floor(Math.random() * myArray.length);
+                const randomItem = myArray[randomIndex];
                 const ongoingGame = yield OngoingGame_1.default.findOne();
                 const nextGame = yield Game_1.default.findById(ongoingGame === null || ongoingGame === void 0 ? void 0 : ongoingGame.next_game);
                 // change all current bet status to completed (only players who have't withdrawed money, as for else it was already updated to placed)
@@ -234,7 +240,7 @@ class GameController {
                     fall_rate: 0,
                     earning: 0,
                     start_time: Date.now() + (10 * 1000),
-                    end_time: Date.now() + (90 * 1000),
+                    end_time: Date.now() + (randomItem * 1000),
                 };
                 const newNextGame = yield new Game_1.default(newGameData).save();
                 // update bet statuses for new current game
@@ -263,12 +269,49 @@ class GameController {
             }
         });
     }
+    static getXValue() {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const ongoingGame = yield OngoingGame_1.default.findOne();
+                // let id = ObjectId(ongoingGame?.current_game)
+                const currentGame = yield Game_1.default.findOne({ _id: ongoingGame === null || ongoingGame === void 0 ? void 0 : ongoingGame.current_game, is_game_end: false });
+                const timeDiffInMs1 = currentGame === null || currentGame === void 0 ? void 0 : currentGame.end_time;
+                // result.length === 0 && 
+                console.log("gamedata.data============>>>>>>>>>>>>", Date.now());
+                if (Date.now() >= Number(timeDiffInMs1)) {
+                    const gameEnd = yield GameController.endGame();
+                    currentGame.is_game_end = true;
+                    currentGame.save();
+                    timer = 0;
+                }
+                else {
+                    timer += 0.01;
+                }
+                return {
+                    status: true,
+                    message: 'Up Get Successfully',
+                    data: {
+                        timer
+                    },
+                    error: null,
+                };
+                // };
+            }
+            catch (error) {
+                return {
+                    status: false,
+                    message: 'ERROR',
+                    data: {},
+                    error: error,
+                };
+            }
+        });
+    }
     static handleGame() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const ongoingGame = yield OngoingGame_1.default.findOne();
                 const currentGame = yield Game_1.default.findById(ongoingGame === null || ongoingGame === void 0 ? void 0 : ongoingGame.current_game);
-                console.log("currentGame===============+++++++++++++----------->>>>>>>>>>>", currentGame);
                 const allBets = yield Bet_1.default.find({
                     game_id: currentGame === null || currentGame === void 0 ? void 0 : currentGame._id,
                 }).populate([{ path: 'user_id' }]);
@@ -297,6 +340,7 @@ class GameController {
                 // result.length === 0 && 
                 if (Date.now() >= Number(timeDiffInMs1)) {
                     if (!currentGame.is_game_end) {
+                        console.log("handlegamehandlegame==============>>>>>>>>>>>...", currentGame);
                         const gameEnd = yield GameController.endGame();
                         currentGame.is_game_end = true;
                         currentGame.save();
@@ -327,19 +371,12 @@ class GameController {
                 // }
                 // } else {
                 let currentGameId = currentGame._id;
-                const X = GameController.getUp({
-                    gameTotal,
-                    remaining,
-                    baseAmount,
-                    timeDiffInMs,
-                    currentGameId
-                });
-                const checkAutoAPI = GameController.checkAutoBet(X, currentGame._id);
+                // const X = GameController.getUp();
+                // const checkAutoAPI = GameController.checkAutoBet(currentGame._id);
                 return {
                     status: true,
                     message: 'Up Get Successfully',
                     data: {
-                        X,
                         allBets,
                         is_game_end: false,
                     },
@@ -472,25 +509,6 @@ _a = GameController;
 // 	);
 // 	return up;
 // };
-GameController.getUp = ({ gameTotal, remaining, baseAmount, timeDiffInMs, currentGameId }) => {
-    // console.log(
-    // 	remaining,
-    // 	baseAmount,
-    // 	timeDiffInMs,
-    // 	'------------------------------ remaining baseAmount timeDiffInMs 💥'
-    // );
-    // const range: number = ((+remaining - +baseAmount) * timeDiffInMs) / 10000; //speed
-    // console.log("currentGameId=============>>>>>>>>>>>>.",gameId,currentGameId);
-    if (gameId.toString() === currentGameId.toString()) {
-    }
-    else {
-        timer = 0;
-        gameId = currentGameId;
-    }
-    timer += 0.01;
-    // console.log("x======",timer);
-    return timer;
-};
 GameController.withdrowalAutomatically = (betId) => __awaiter(void 0, void 0, void 0, function* () {
     const ongoingGame = yield OngoingGame_1.default.findOne();
     const currentGame = yield Game_1.default.findById(ongoingGame === null || ongoingGame === void 0 ? void 0 : ongoingGame.current_game);

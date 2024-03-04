@@ -6,7 +6,7 @@ import apiPath from "../../constants/apiPath";
 import { Severty, ShowToast } from "../../helper/toast";
 import useRequest from "../../hooks/useRequest";
 
-const WithdrawalStatus = ({ show, hide, requestId, statusRefresh }) => {
+const WithdrawalStatus = ({ show, hide,type, requestId, statusRefresh }) => {
 
     const [form] = Form.useForm();
     const { request } = useRequest();
@@ -14,12 +14,12 @@ const WithdrawalStatus = ({ show, hide, requestId, statusRefresh }) => {
 
     const bookingStatus = [
         {
-            value: WITHDRAW_STATUS.approved,
-            label: "Approved",
+            value: WITHDRAW_STATUS.success,
+            label: "Approve",
         },
         {
             value: WITHDRAW_STATUS.rejected,
-            label: "Rejected",
+            label: "Reject",
         },
     ];
 
@@ -27,8 +27,9 @@ const WithdrawalStatus = ({ show, hide, requestId, statusRefresh }) => {
         const { status } = values;
         setLoading(true);
         const payload = {};
-        payload.status = status;
+        payload.status = status
         payload._id = requestId;
+        payload.type = type
 
         request({
             url: apiPath.withdrawalStatus,

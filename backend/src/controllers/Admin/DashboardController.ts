@@ -66,4 +66,33 @@ export class DashboardController {
 			next(err);
 		}
 	}
+	static async dashboardBoxData(req, res, next) {
+		try {
+			const startTime = new Date().getTime();
+			let getTransaction = await Transaction.aggregate([
+				{
+				  $match: {
+					transaction_type: { $in: ["Debit", "Credit"] } // Filter only debit and credit transactions
+				  }
+				},
+				{
+				  $group: {
+					_id: "$transaction_type",
+					totalAmount: { $sum: "$amount" }
+				  }
+				}
+			  ]);
+			
+
+			return _RS.ok(
+				res,
+				'SUCCESS',
+				'Dashboard data has been get Successfully',
+				getTransaction,
+				startTime
+			);
+		} catch (err) {
+			next(err);
+		}
+	}
 }

@@ -45,7 +45,7 @@ export const Routes = () => {
         },
         {
             path:"/register/referral/:rfCode",
-            element:<Register/>
+            element:token?<Navigate to="/account" replace />:<Register/>
         },
         {
             path:"/promotion",

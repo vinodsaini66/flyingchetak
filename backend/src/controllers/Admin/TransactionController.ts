@@ -43,7 +43,7 @@ export class TransactionController {
 						  account_holder:"$customerInfo.bankInfo.account_holder"
 						},
 				  },
-			])
+			]).sort({ created_at: -1 })
 
 			return _RS.ok(
 				res,
@@ -70,7 +70,7 @@ static async getTransactionByUserId(req, res, next) {
 			$and: [
 				{ $or: [{ transaction_type: "Debit" }, { transaction_type: "Credit" }] },
 			  ]
-			});
+			}).sort({ created_at:-1});
 		const betData = await Bet.find({user_id:id})
 		const totalAmount = await WalletSettings.findOne({userId:id})
 		const Pipeline = [
@@ -100,7 +100,7 @@ static async getTransactionByUserId(req, res, next) {
 				totalAmount: { $sum: "$amount" },
 			  },
 			},
-		  ];
+		  ]
 		  
 		  const withdrawalResult = await Transaction.aggregate(Pipeline);
 		const DepositeResult = await Transaction.aggregate(Pipeline1)
@@ -116,5 +116,5 @@ static async getTransactionByUserId(req, res, next) {
 	} catch (err) {
 		next(err);
 	}
-}
+  }
 }

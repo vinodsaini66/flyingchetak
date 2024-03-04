@@ -49,7 +49,7 @@ class TransactionController {
                             account_holder: "$customerInfo.bankInfo.account_holder"
                         },
                     },
-                ]);
+                ]).sort({ created_at: -1 });
                 return ResponseHelper_1.default.ok(res, "Success", 'Transaction Found Successfully', get, startTime);
             }
             catch (err) {
@@ -69,7 +69,7 @@ class TransactionController {
                     $and: [
                         { $or: [{ transaction_type: "Debit" }, { transaction_type: "Credit" }] },
                     ]
-                });
+                }).sort({ created_at: -1 });
                 const betData = yield Bet_1.default.find({ user_id: id });
                 const totalAmount = yield WalletSettings_1.default.findOne({ userId: id });
                 const Pipeline = [

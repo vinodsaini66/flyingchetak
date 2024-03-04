@@ -13,6 +13,9 @@ class DashboardRoutes {
     }
     get() {
         this.router.get("/get", Authentication_1.default.admin, DashboardController_1.DashboardController.dashboardData);
+        this.router.get("/box-data/get", 
+        // Authentication.admin,
+        DashboardController_1.DashboardController.dashboardBoxData);
     }
 }
 exports.default = new DashboardRoutes().router;

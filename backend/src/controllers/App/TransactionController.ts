@@ -4,6 +4,8 @@ import _RS from "../../helpers/ResponseHelper";
 import Transaction from "../../models/TransactionSetting";
 import Wallet from "../../models/WalletSettings";
 import HistorySetting from "../../models/HistorySetting";
+import User from "../../models/User";
+import AdminSetting from "../../models/AdminSetting";
 const { ObjectId } = require('mongodb');
 
 export class TransactionController {
@@ -56,6 +58,27 @@ static async addWithdrawal(req, res, next) {
   } = req.body;
       let txnRefId = 'CHETAK' + new Date().getTime();
       let userId = new ObjectId(req.user._id)
+      let getUserByuserId = await User.findOne({_id:userId})
+      let adminsetting = await AdminSetting.findOne()
+      if(!getUserByuserId.withdrawal_status){
+        return _RS.api(
+          res,
+          false,
+          "Your withdrawal is not active! Please contact to admin",
+          {},
+          startTime
+        );
+      }
+      if(!adminsetting.withdrawal){
+        return _RS.api(
+          res,
+          false,
+          "Withdrawal is not active! Please contact to admin",
+          {},
+          startTime
+        );
+      }
+
       let walletBalance = await Wallet.findOne({userId:userId})
       if(walletBalance && walletBalance.balance && walletBalance.balance>amount){
         let actualbalance = Number(walletBalance.balance)-amount
@@ -115,7 +138,7 @@ static async addWithdrawal(req, res, next) {
         return _RS.api(
           res,
           false,
-          "Withdrawal Amount is Equal Aur Less Than Balance",
+          "Not enough balance",
           {},
           startTime
         );

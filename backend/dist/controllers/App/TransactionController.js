@@ -15,6 +15,8 @@ const ResponseHelper_1 = require("../../helpers/ResponseHelper");
 const TransactionSetting_1 = require("../../models/TransactionSetting");
 const WalletSettings_1 = require("../../models/WalletSettings");
 const HistorySetting_1 = require("../../models/HistorySetting");
+const User_1 = require("../../models/User");
+const AdminSetting_1 = require("../../models/AdminSetting");
 const { ObjectId } = require('mongodb');
 class TransactionController {
     /**
@@ -50,6 +52,14 @@ class TransactionController {
             const { amount, } = req.body;
             let txnRefId = 'CHETAK' + new Date().getTime();
             let userId = new ObjectId(req.user._id);
+            let getUserByuserId = yield User_1.default.findOne({ _id: userId });
+            let adminsetting = yield AdminSetting_1.default.findOne();
+            if (!getUserByuserId.withdrawal_status) {
+                return ResponseHelper_1.default.api(res, false, "Your withdrawal is not active! Please contact to admin", {}, startTime);
+            }
+            if (!adminsetting.withdrawal) {
+                return ResponseHelper_1.default.api(res, false, "Withdrawal is not active! Please contact to admin", {}, startTime);
+            }
             let walletBalance = yield WalletSettings_1.default.findOne({ userId: userId });
             if (walletBalance && walletBalance.balance && walletBalance.balance > amount) {
                 let actualbalance = Number(walletBalance.balance) - amount;
@@ -86,7 +96,7 @@ class TransactionController {
                 }
             }
             else {
-                return ResponseHelper_1.default.api(res, false, "Withdrawal Amount is Equal Aur Less Than Balance", {}, startTime);
+                return ResponseHelper_1.default.api(res, false, "Not enough balance", {}, startTime);
             }
         });
     }

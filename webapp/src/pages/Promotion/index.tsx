@@ -6,9 +6,11 @@ import { Severty, ShowToast } from "../../helper/toast"
 import useRequest from "../../hooks/useRequest"
 import { AuthContext } from "../../context/AuthContext"
 import { WalletContext } from "../../context/WalletContext"
+import Loader from "../../component/Loader"
 
 export const Promotion = () => {
   const[list, setList] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState<boolean>(false)
   let { userProfile } = useContext(AuthContext)
   const { request } = useRequest()
   const { walletDetails } = useContext(WalletContext)
@@ -17,11 +19,12 @@ export const Promotion = () => {
   },[])
 
 const getPromotionData = () => {
+  setIsLoading(true)
   request({
     url: apiPath.promotionData,
     method: "GET",
     onSuccess: (data) => {
-      // setLoading(false);
+      setIsLoading(false);
       if (data.status) {
         // ShowToast(data.message, Severty.SUCCESS);
         setList(data.data);
@@ -40,7 +43,7 @@ const getPromotionData = () => {
             <Header/>
             <div className="in_padding">
                         <div className="container">
-
+                       
                             <div className="row ">
                                 <div className="col-md-4 mb-4">
                                   <div className="white_box ">
@@ -48,12 +51,9 @@ const getPromotionData = () => {
                                     <h5 className=" mb-3">Wallet</h5>
                                     <hr/>
                                      <div className="text-center">
-                                    <h2 className="text-white mb-0 mt-4"><i className="fa fa-inr" ></i>{walletDetails?.balance}</h2>
+                                    <h2 className="text-white mb-0 mt-4"><i className="fa fa-inr" ></i>{walletDetails?.balance?.toFixed(2) || 0 }</h2>
                                     <p> Total Balance</p>
                                    </div>
-
-                                   
-                                    
                                    </div>
                                    </div>
                               
@@ -64,6 +64,7 @@ const getPromotionData = () => {
                                        <p > Number of register</p>
                                        <h2 className=""> {list?.length>0 && list[0]?.no_of_register}</h2>
                                       <i className="fa fa-money" ></i>
+                                      {isLoading && <Loader/>}
                                     </div>
                                   </div>
                                   <div className="col-md-6 mb-4">
@@ -71,13 +72,15 @@ const getPromotionData = () => {
                                       <p >  Deposit number</p>
                                        <h2 className=""> {list?.length>0 && list[1]?.deposite_number}</h2>
                                       <i className="fa fa-inr" ></i>
+                                      {isLoading && <Loader/>}
                                     </div>
                                   </div>
                                   <div className="col-md-6 mb-4">
                                       <div className="white_box d_box h100">
-                                       <p >  Deposit amount</p>
+                                       <p >Total Referral User Deposit amount</p>
                                        <h2 className="">{list?.length>0 && list[2]?.deposite_amount}</h2>
                                       <i className="fa fa-inr" ></i>
+                                      {isLoading && <Loader/>}
                                     </div>
                                   </div>
                                   <div className="col-md-6 mb-4">
@@ -85,6 +88,7 @@ const getPromotionData = () => {
                                       <p >  Number of people<br/>making first deposit</p>
                                        <h2 className="">{list?.length>0 && list[3]?.user_no_with_first_deposite}</h2>
                                       <i className="fa fa-university" ></i>
+                                      {isLoading && <Loader/>}
                                     </div>
                                   </div>
                                   </div>

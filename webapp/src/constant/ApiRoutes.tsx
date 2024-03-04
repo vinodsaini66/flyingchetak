@@ -1,5 +1,8 @@
 const baseURL = 'http://35.202.132.15/';
-// const baseURL = "http://localhost:8002/"
+const baseLOCALURL = "https://web.thelotusonline777.com/"
+// const baseURL = "http://192.168.1.5:8002/"
+// const baseLOCALURL = "http://localhost:3000/"
+
 
 const apiPath = {
 	signup: 'api/app/auth/sign-up',
@@ -24,4 +27,4 @@ const apiPath = {
 	getBets:"api/app/game/bets"
 };
 
-export { baseURL, apiPath };
+export { baseURL, apiPath,baseLOCALURL };

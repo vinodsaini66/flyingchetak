@@ -27,7 +27,7 @@ const WalletProvider = ({children}:any) => {
              onSuccess: (data) => {
                if (data.status) {
                 setWalaletDetails(data.data)
-                setAgain(false)
+                // setAgain(false)
                } else {
                  ShowToast(data.message, Severty.ERROR);
                }

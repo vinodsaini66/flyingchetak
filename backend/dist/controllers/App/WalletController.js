@@ -39,37 +39,27 @@ class WalletController {
         return __awaiter(this, void 0, void 0, function* () {
             const startTime = new Date().getTime();
             let { id, amount, txn } = req.query;
-            let userId = new ObjectId(id);
-            let previousBalance = yield WalletSettings_1.default.findOne({ userId: userId });
-            let newBalance = (previousBalance === null || previousBalance === void 0 ? void 0 : previousBalance.balance) && Number(previousBalance.balance) + Number(amount);
-            console.log("thirdartyapi", previousBalance, newBalance, amount);
             try {
-                let updateWallet = yield WalletSettings_1.default.updateOne({ userId: userId }, { $set: { balance: newBalance } });
                 let add = {
                     payee: id,
                     receiver: id,
                     amount: Number(amount),
                     transaction_mode: "User",
                     transaction_type: "Credit",
-                    wallet_id: previousBalance._id,
+                    // wallet_id:previousBalance._id,
                     transaction_id: txn,
                     status: "Pending"
                 };
-                if (updateWallet.nModified > 0) {
-                    const historyTime = moment(startTime).format('MMMM Do YYYY, h:mm:ss a');
-                    let historypayload = {
-                        userId: id,
-                        type: "Credit",
-                        status: "Success",
-                        message: `Your account has been Credited to ${amount} at ${historyTime}`
-                    };
-                    let createhistory = yield HistorySetting_1.default.create(historypayload);
-                    let addTransaction = yield TransactionSetting_1.default.create(add);
-                    return ResponseHelper_1.default.api(res, true, "Balance Update Successfully", {}, startTime);
-                }
-                else {
-                    return ResponseHelper_1.default.api(res, false, "Some error occurs", {}, startTime);
-                }
+                const historyTime = moment(startTime).format('MMMM Do YYYY, h:mm:ss a');
+                let historypayload = {
+                    userId: id,
+                    type: "Credit",
+                    status: "Success",
+                    message: `Your account has been Credited to ${amount} at ${historyTime}`
+                };
+                let createhistory = yield HistorySetting_1.default.create(historypayload);
+                let addTransaction = yield TransactionSetting_1.default.create(add);
+                return ResponseHelper_1.default.api(res, true, "Balance Update Successfully", {}, startTime);
             }
             catch (error) {
                 next(error);

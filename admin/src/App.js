@@ -14,6 +14,7 @@ import Transaction from './pages/Transaction';
 import View from './pages/User/View';
 import UserTransaction from './pages/User/Transaction';
 import Channel from "./pages/Channel/index"
+import UTR from './pages/UTR';
 
 window.Buffer = window.Buffer || require('buffer').Buffer;
 function App() {
@@ -63,6 +64,8 @@ const AppRoutes = () => {
 				<Route exact path='/withdrawal' element={<Withdrawal />} />
 				<Route exact path='/transactions' element={<Transaction />} />
 				<Route exact path='/channel' element={<Channel />} />
+				<Route exact path='/utr' element={<UTR />} />
+
 
 
 

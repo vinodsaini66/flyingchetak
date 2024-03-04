@@ -21,7 +21,7 @@ const path = require("path");
 const GameController_1 = require("./controllers/App/GameController");
 const app = express();
 const cookieParser = require('cookie-parser');
-const SEND_INTERVAL = 500;
+const SEND_INTERVAL = 1000;
 class Server {
     constructor() {
         this.app = express();
@@ -92,35 +92,60 @@ class Server {
                 'Content-Type': 'text/event-stream',
             });
             const sseId = new Date().toDateString();
-            const handleGameInterval = () => __awaiter(this, void 0, void 0, function* () {
-                let timeStart = 0;
+            let funCall = 1;
+            const xValueGet = () => __awaiter(this, void 0, void 0, function* () {
+                funCall = 1;
                 const gameInterval = setInterval(() => __awaiter(this, void 0, void 0, function* () {
-                    var _a;
-                    console.log("IntervalCall");
-                    const gameData = yield GameController_1.GameController.handleGame();
-                    console.log("gameData =====", gameData);
-                    if (!!((_a = gameData === null || gameData === void 0 ? void 0 : gameData.data) === null || _a === void 0 ? void 0 : _a.is_game_end)) {
-                        console.log("gameEnd=====APICAll");
+                    const gameData = yield GameController_1.GameController.getXValue();
+                    if (gameData.data.timer.toFixed(2) == 0.00 && funCall == 1) {
+                        funCall += 1;
                         clearInterval(gameInterval);
                         this.writeEvent(res, sseId, JSON.stringify({
                             message: gameData.message,
                             status: gameData.status,
-                            data: gameData.data,
-                            startTime: startTime,
+                            data: gameData.data
                         }));
-                        setTimeout(() => handleGameInterval(), 10000);
+                        setTimeout(() => xValueGet(), 10000);
                     }
-                    if (!!gameData.error) {
-                        this.handleErrors();
-                        // clearInterval(gameInterval);
+                    else {
+                        this.writeEvent(res, sseId, JSON.stringify({
+                            message: gameData.message,
+                            status: gameData.status,
+                            data: gameData.data
+                        }));
                     }
+                }), SEND_INTERVAL);
+            });
+            xValueGet();
+            const handleGameInterval = () => __awaiter(this, void 0, void 0, function* () {
+                var _a;
+                let timeStart = 0;
+                //   const gameInterval = setInterval(async () => {
+                console.log("IntervalCall");
+                const gameData = yield GameController_1.GameController.handleGame();
+                if (!!((_a = gameData === null || gameData === void 0 ? void 0 : gameData.data) === null || _a === void 0 ? void 0 : _a.is_game_end)) {
+                    console.log("gameEnd=====APICAll");
+                    //   clearInterval(gameInterval);
                     this.writeEvent(res, sseId, JSON.stringify({
                         message: gameData.message,
                         status: gameData.status,
                         data: gameData.data,
                         startTime: startTime,
                     }));
-                }), SEND_INTERVAL);
+                    setTimeout(() => handleGameInterval(), 10000);
+                }
+                if (!!gameData.error) {
+                    this.handleErrors();
+                    //   clearInterval(gameInterval);
+                }
+                this.writeEvent(res, sseId, JSON.stringify({
+                    message: gameData.message,
+                    status: gameData.status,
+                    data: gameData.data,
+                    startTime: startTime,
+                }));
+                setTimeout(() => handleGameInterval(), 7000);
+                //   }, 100000);
             }); // Bind the function to the current context
             handleGameInterval();
         });

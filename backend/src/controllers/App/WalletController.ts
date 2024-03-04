@@ -33,24 +33,17 @@ export class WalletController {
       id,amount,txn
     } = req.query
 
-    let userId = new ObjectId(id)
-    let previousBalance = await Wallet.findOne({userId:userId})
-    let newBalance = previousBalance?.balance && Number(previousBalance.balance)+Number(amount)
-    console.log("thirdartyapi",previousBalance,newBalance,amount)
-
     try{
-    let updateWallet = await Wallet.updateOne({userId:userId},{$set:{balance:newBalance}})
     let add = {
       payee:id,
       receiver:id,
       amount:Number(amount),
       transaction_mode:"User",
       transaction_type:"Credit",
-      wallet_id:previousBalance._id,
+      // wallet_id:previousBalance._id,
       transaction_id:txn,
       status:"Pending"
     }
-      if (updateWallet.nModified>0) {
         const historyTime = moment(startTime).format('MMMM Do YYYY, h:mm:ss a')
 				let historypayload = {
 				userId:id,
@@ -67,16 +60,6 @@ export class WalletController {
           {},
           startTime
         );
-      }
-      else{
-        return _RS.api(
-          res,
-          false,
-          "Some error occurs",
-          {},
-          startTime
-        );
-      }
     }catch(error){
       next(error)
     }
@@ -94,7 +77,7 @@ static async requestBalanceViaThirdParty(req, res, next) {
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
     
-console.log("redirect_url",`${env().redirection_url}?id=${req.user._id}&amount=${balance}&txn=${txnRefId}`)
+    console.log("redirect_url",`${env().redirection_url}?id=${req.user._id}&amount=${balance}&txn=${txnRefId}`)
     let data = JSON.stringify({
       "key": getChannel?.key,
       "client_txn_id": txnRefId,

@@ -9,12 +9,14 @@ import { Severty, ShowToast } from "../../helper/toast";
 import moment from "moment";
 import { WalletContext } from "../../context/WalletContext";
 import { SettingContext } from "../../context/SettingContext";
-
+import { BeatLoader, GridLoader, HashLoader } from "react-spinners";
+import Loader from "../../component/Loader";
 export const Wallet = () =>{
    const [open, setOpen] = useState<boolean>(false);
    const [withdrawalOpen, setWithdrawalOpen] = useState<boolean>(false);
    const [transactionsList, setTransactionsList] = useState<any>([]);
    const [buttonClass, setButtonClass] = useState<string>("")
+   const [is_loading, setIs_loading] = useState<boolean>(false)
    const { walletDetails, setAgain } = useContext(WalletContext)
    const {settingDetails} = useContext(SettingContext)
 
@@ -50,14 +52,15 @@ export const Wallet = () =>{
       let data = {
          transaction_type:type
       }
+      setIs_loading(true)
+      setTransactionsList({})
       request({
          url: apiPath.transactions,
          method: "POST",
          data: data,
          onSuccess: (data) => {
-           // setLoading(false);
+            setIs_loading(false)
            if (data.status) {
-            console.log("transactions",data)
             setTransactionsList(data.data)
            } else {
              ShowToast(data.message, Severty.ERROR);
@@ -73,9 +76,6 @@ export const Wallet = () =>{
     return(
         <>
         <Header/>
-        {/* <div className="active" style={{marginTop:"70px",textAlign:"center",border:"2px solid brown"}}>
-        <h4>{settingDetails.withdrawal?"Withdrawal Is Not Active":""}</h4>
-        </div> */}
         <div className="in_padding">
                         <div className="container">
                             <div className="row ">
@@ -84,12 +84,9 @@ export const Wallet = () =>{
                                     <h5 className=" mb-3">Wallet</h5>
                                     <hr/>
                                      <div className="text-center">
-                                    <h2 className="text-white mb-0 mt-4"><i className="fa fa-inr" ></i>{walletDetails?.balance || 0.00}</h2>
+                                    <h2 className="text-white mb-0 mt-4"><i className="fa fa-inr" ></i>{walletDetails?.balance?.toFixed(2) || 0.00}</h2>
                                     <p>Total Balance</p>
                                    </div>
-
-                                   
-                                    
                                    </div>
                                    </div>
                               
@@ -104,7 +101,7 @@ export const Wallet = () =>{
                               <div className="van-circle__text">100%</div>
                             </div>
                              <div className="pl-3">
-                              <h3 data-v-fe2fea6f=""><i className="fa fa-inr" ></i>{walletDetails?.balance || 0.00}</h3>
+                              <h3 data-v-fe2fea6f=""><i className="fa fa-inr" ></i>{walletDetails?.balance?.toFixed(2) || 0.00}</h3>
                               <p data-v-fe2fea6f="">Main wallet</p>
                             </div>
                             </div>
@@ -119,7 +116,7 @@ export const Wallet = () =>{
          <ul className="nav nav_btn mb-4 w-100" style={{display:"flex",justifyContent:"space-between"}}>
           <div className="button-class d-flex">
       <li><a data-toggle="tab" type="Credit" className={buttonClass == "Credit"?"active":""} href="#Deposithistory" onClick={()=>handleClick("Credit")}>Deposit history</a></li>
-      <li><a data-toggle="tab" type="Debit"className={buttonClass == "Debit"?"active":""} href="#Withdrawalhistory" onClick={()=>handleClick("Debit")}>Withdrawalhistory</a></li>
+      <li><a data-toggle="tab" type="Debit"className={buttonClass == "Debit"?"active":""} href="#Withdrawalhistory" onClick={()=>handleClick("Debit")}>Withdrawal history</a></li>
       </div>
       <div className="button-class d-flex">
       <li > <button className="btn_man  ml-3 ml-md-5"  type="button" onClick={handleDepositeOpen}>+Add Balance</button></li>
@@ -130,7 +127,7 @@ export const Wallet = () =>{
   <div className="tab-content">
     <div id="Deposit" className="tab-pane  in active">
      <div className="table-responsive">
-   <table className="table table-striped table-striped" id="as-react-datatable">
+   <table className="table table-striped table-striped" id="as-react-datatable" >
       <thead className="">
          <tr>
             <th className="sortable  text-left" >Transaction Id</th>
@@ -141,15 +138,23 @@ export const Wallet = () =>{
             <th className="sortable  text-left" >Date</th>
          </tr>
       </thead>
-      <tbody>
-         {transactionsList.length>0 && transactionsList.map((data:any,i:number)=>{return  <tr>
-            <td className="upcase">{data._id}</td>
+      <tbody style={{position:"relative"}}>
+         {transactionsList.length>0?  transactionsList.map((data:any,i:number)=>{return  <tr>
+            <td className="upcase">{data.transaction_id}</td>
             <td className="upcase">{data.amount}</td>
             <td className="upcase">{data.status}</td>
             <td className="upcase">{data.transaction_mode}</td>
             <td className="upcase">{data.transaction_type}</td>
             <td className="upcase">{moment(data.created_at).format('MMMM Do YYYY, h:mm:ss a')}</td>
-         </tr>})}
+         </tr>}):
+          <tr>
+          <td colSpan={6} style={{ textAlign: "center" }}>
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%" }}>
+              <Loader/>
+            </div>
+          </td>
+        </tr>
+            }
       </tbody>
    </table>
 </div>
@@ -161,9 +166,6 @@ export const Wallet = () =>{
                     {open && <WalletModal setOpen={setOpen} onClose={handleClose} />}
                      {withdrawalOpen && <WithdrawalModel setWOpen={setWithdrawalOpen} onClose={handleClose} 
                      balanceApi = {setAgain} getTransaction={handleClick}/>}
-             
-        {/* <Footer/> */}
-
         </>
     )
 }

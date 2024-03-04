@@ -6,11 +6,12 @@ import { AuthContext } from "../../context/AuthContext"
 import { ProfileUserInput, ProfileUserInputError } from "../../Interface/Profile"
 import { ProfileVal } from "../../validation/ProfileVal"
 import useRequest from "../../hooks/useRequest"
-import { apiPath, baseURL } from "../../constant/ApiRoutes"
+import { apiPath, baseLOCALURL, baseURL } from "../../constant/ApiRoutes"
 import { Severty, ShowToast } from "../../helper/toast"
 import BankModel from "../../component/BankModel"
 import { WalletContext } from "../../context/WalletContext"
 import { AvatarGenerate } from "../../component/Avtar"
+import Loader from "../../component/Loader"
 
 export const Account = () => {
    const[userInput, setUserInput] = useState<ProfileUserInput>({
@@ -28,6 +29,7 @@ export const Account = () => {
       dobError:"",
     })
     const [open, setOpen] = useState<boolean>(false)
+    const [isLoading, setIsLoading] = useState<boolean>(false)
     const [imageVisibility, setImageVisibility] = useState<string>("")
     const { isLoggedIn, userProfile,logout ,getProfile } = useContext(AuthContext)
     const { walletDetails } = useContext(WalletContext)
@@ -51,6 +53,11 @@ export const Account = () => {
       setOpen(true)
     }
 
+    const handleCopy = (e:string) => {
+      navigator.clipboard.writeText(e)
+      ShowToast("Content Copied Successfully", Severty.SUCCESS);
+    }
+
       const handleChange = async(e:any) => {
          let {name,value} = e.target
          const validation = await ProfileVal(name, value)
@@ -66,13 +73,15 @@ export const Account = () => {
        }
 
        const handleSubmit = () => {
-         if(userInputError.dobError || userInputError.emailError || userInputError.genderError ||userInputError.mobile_numberError || userInputError.nameError) return false
+         if(userInputError.dobError || userInputError.genderError || userInputError.nameError) return false
       const payload = userInput
+      setIsLoading(true)
       request({
         url: apiPath.updateProfile,
         method: "POST",
         data: payload,
         onSuccess: (data) => {
+          setIsLoading(false)
           if (data.status) {
             ShowToast(data.message, Severty.SUCCESS);
           } else {
@@ -114,13 +123,12 @@ export const Account = () => {
                                   </div>
                                     <hr/>
                                      <div className="text-center">
-                                   <h2 className="text-white mb-0 mt-4"><i className="fa fa-inr" ></i>{walletDetails?.balance || 0}</h2>
+                                   <h2 className="text-white mb-0 mt-4"><i className="fa fa-inr" ></i>{walletDetails?.balance?.toFixed(2) || 0}</h2>
                                     <p> Total Balance</p>
                                    </div>
 
                                     <hr/>
-                                    <Link className="d-flex  align-items-center" to="/notification"><i className="fa fa-bell mr-2" ></i> Notification <i className="fa fa-angle-right ml-auto" ></i>
-                        </Link>
+                                    <Link className="d-flex  align-items-center" to="/notification"><i className="fa fa-bell mr-2" ></i> Notification <i className="fa fa-angle-right ml-auto" ></i></Link>
                                    </div>
                                    </div>
                               
@@ -133,14 +141,16 @@ export const Account = () => {
                                <form id="update-user">
                                   <div className="">
                                      <div className="row">
-                                        <div className="form-group col-md-6"><label>Name</label><input id="user-update-name" name="name" type="text" className="form-control" value={userInput.name} onChange={handleChange}/><span className="text-danger" >{userInputError.nameError}</span></div>
-                                        <div className="form-group col-md-6"><label>Email</label><input id="user-update-email" name="email" type="text" className="form-control" value={userInput.email} onChange={handleChange} /><span className="text-danger" >{userInputError.emailError}</span></div>
+                                        <div className="form-group col-md-6"><label>Email</label><input id="user-update-email" name="email" type="text" className="form-control" disabled={true} value={userInput.email} /></div>
+                                        <div className="form-group col-md-6"><label>Mobile Number</label><input id="user-update-mobile_number" name="mobile_number" type="number" className="form-control" disabled={true} value={userInput.mobile_number}  /></div>
                                      </div>
                                      <div className="row">
+                                     <div className="form-group col-md-6"><label>Name</label><input id="user-update-name" name="name" type="text" className="form-control" value={userInput.name} onChange={handleChange}/><span className="text-danger" >{userInputError.nameError}</span></div>
+
                                         <div className="form-group col-md-6"><label>Date of Birth</label><input id="user-update-dob" name="dob" type="date" max-length="8" className="form-control" value={userInput.dob} onChange={handleChange} /><span className="text-danger">{userInputError.dobError}</span></div>
                                         <div className="form-group col-md-6">
                                            <label>Gender</label>
-                                           <select className="form-control" style={{background:"#29254a",height:"auto"}} name="gender" value={userInput.gender} onChange={handleChange} id="user-update-gender">
+                                           <select className="form-control" style={{background:"#2a264c",height:"auto"}} name="gender" value={userInput.gender} onChange={handleChange} id="user-update-gender">
                                               <option value="">Select</option>
                                               <option value="Male">Male</option>
                                               <option value="Female">Female</option>
@@ -149,12 +159,9 @@ export const Account = () => {
                                            <span className="text-danger">{userInputError.genderError}</span>
                                         </div>
                                      </div>
-                                     <div className="row">
-                                        <div className="form-group col-md-6"><label>Mobile Number</label><input id="user-update-mobile_number" name="mobile_number" type="number" className="form-control" value={userInput.mobile_number} onChange={handleChange} /><span className="text-danger" >{userInputError.mobile_numberError}</span></div>
-                                     </div>
                                      <button className="btn btn_man" type="button" onClick={handleSubmit}
-                                     disabled={!userInput.name || !userInput.dob || !userInput.email || !userInput.gender || !userInput.mobile_number?true:false}
-                                     >Save</button>
+                                     disabled={!userInput.name || !userInput.dob || !userInput.gender || isLoading ?true:false}
+                                     >{isLoading && <Loader/>} Save</button>
                                   </div>
                                </form>
                             </div>
@@ -180,15 +187,16 @@ export const Account = () => {
    <label>Referral Code</label>
    
       <div className="form-group ">
-         <div className="copy_input"><input id="user-update-mobile" type="text" className="form-control"  value={userProfile?.referral_id} /><i className="fa fa-copy" onClick={()=>navigator.clipboard.writeText(userProfile?.referral_id)}></i></div>
+         <div className="copy_input"><input id="user-update-mobile" type="text" className="form-control"  value={userProfile?.referral_id} /><i className="fa fa-copy" onClick={()=>handleCopy(userProfile?.referral_id)}></i></div>
        
    </div>
    <label>Referral Link</label>
    
-      <div className="form-group " onClick={()=>handleWhatsAppChange(`${baseURL}referral/${userProfile?.referral_id}`,`Hey!
+      {/* <div className="form-group " onClick={()=>handleWhatsAppChange(`${baseURL}referral/${userProfile?.referral_id}`,`Hey!
 
-Love DamanClub! 📱💙 Join me & let's both get rewards. 🎁 Use my code ${userProfile?.referral_id} at ${baseURL}referral/${userProfile?.referral_id}. Can't wait to see you onboard!`)}>
-         <div className="copy_input"><input id="user-update-mobile" type="text" className="form-control" disabled={true} value={`${baseURL}referral/${userProfile?.referral_id}`} /><i className="fa fa-copy" onClick={()=>navigator.clipboard.writeText(`${baseURL}referral/${userProfile?.referral_id}`)}></i></div>
+Love DamanClub! 📱💙 Join me & let's both get rewards. 🎁 Use my code ${userProfile?.referral_id} at ${baseURL}referral/${userProfile?.referral_id}. Can't wait to see you onboard!`)}> */}
+<div className="form-group ">
+         <div className="copy_input"><input id="user-update-mobile" type="text" className="form-control"  value={`${baseLOCALURL}register/referral/${userProfile?.referral_id}`} /><i className="fa fa-copy" onClick={()=>handleCopy(`${baseLOCALURL}register/referral/${userProfile?.referral_id}`)}></i></div>
       
    </div>
 </div>

@@ -20,7 +20,8 @@ const Bet = new Schema(
 			default: BetStatus.PENDING,
 		},
 		deposit_amount: { type: Number, default: 0 },
-		bidType: { type: String},
+		betType: { type: String},
+		boxType: { type: String},
 		xValue: {type: Number},
 		win_amount: { type: Number, default: 0 },
 		withdraw_at: { type: String, default: null }, // Date.now()

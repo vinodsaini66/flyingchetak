@@ -39,6 +39,12 @@ const navItems = [
 		key: 'Channel Manager',
 	},
 	{
+		title: 'UTR Management',
+		link: '/utr',
+		icon: 'fa fa-exchange',
+		key: 'UTR Manager',
+	},
+	{
 		title: 'Transaction Management', // or game history
 		link: '/transactions',
 		icon: 'fa-solid fa-money-bill-transfer',

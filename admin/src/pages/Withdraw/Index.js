@@ -39,6 +39,7 @@ function Withdrawal() {
 	const [startDate, setStartDate] = useState();
 	const [endDate, setEndDate] = useState();
 	const [requestId, setRequestId] = useState();
+	const [type, setType] = useState("");
 	const [requestStatus, setRequestStatus] = useState();
 	const [requestShow, setRequestShow] = useState();
 
@@ -80,7 +81,7 @@ function Withdrawal() {
 		{
 			title: 'Status',
 			key: 'status',
-			render: (_, { status, _id }) => {
+			render: (_, { status, _id, transaction_type}) => {
 				console.log("statusstatus",status,_id)
 				let color =
 					status === 'approved'
@@ -93,7 +94,7 @@ function Withdrawal() {
 						<Tag
 							color={color}
 							key={status}
-							onClick={() => onClickStatusChange(_id, status)}
+							onClick={() => onClickStatusChange(_id, status, transaction_type)}
 						>
 							{status === WITHDRAW_STATUS.pending
 								? 'Pending'
@@ -176,21 +177,22 @@ function Withdrawal() {
 		}
 	};
 
-	const onClickStatusChange = (_id, status) => {
+	const onClickStatusChange = (_id, status,type) => {
 		if (
 			!(
 				status === WITHDRAW_STATUS.approved ||
 				status === WITHDRAW_STATUS.rejected
 			)
 		) {
-			changeBookingStatus(_id, status);
+			changeBookingStatus(_id, status,type);
 		}
 	};
 
-	const changeBookingStatus = (id, status) => {
+	const changeBookingStatus = (id, status,type) => {
 		setRequestId(id);
 		setRequestStatus(status);
 		setRequestShow(true);
+		setType(type)
 	};
 
 	return (
@@ -301,6 +303,7 @@ function Withdrawal() {
 			{requestStatus && (
 				<WithdrawalStatus
 					show={requestShow}
+					type={type}
 					hide={() => {
 						setRequestShow(false);
 					}}

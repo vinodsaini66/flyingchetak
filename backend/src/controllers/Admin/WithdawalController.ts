@@ -1,6 +1,7 @@
 import _RS from "../../helpers/ResponseHelper";
 import AdminSetting from "../../models/AdminSetting";
 import Transaction from "../../models/TransactionSetting";
+import User from "../../models/User";
 import WalletSettings from "../../models/WalletSettings";
 const express = require("express");
 
@@ -84,7 +85,7 @@ export class WithdrawalController {
         // {
         //   $limit: Number(limit),
         // },
-      ]);
+      ]).sort({ created_at: -1 });
     
       return _RS.api(
         res,
@@ -101,15 +102,42 @@ export class WithdrawalController {
     let {
       _id,
       amount,
-      status
+      status,
+      type
       } = req.body
     try {
+      console.log("amountamountamount",type,status,_id)
+      
       const startTime = new Date().getTime();
         let statusChange = await Transaction.updateOne({_id:_id},{$set:{status:status}})
-        if(status == "Rejected"){
+        if((type == "Credit" && status == "Success") || (type == "Debit" && status == "Reject")){
           let getTra = await Transaction.findOne({_id:_id})
           let reSendMoney = await WalletSettings.updateOne({userId:getTra.payee},{$inc:{balance:getTra.amount}})
-          console.log("elseelseelse",reSendMoney)
+          let userWithRefer = await User.findOne({_id:getTra.payee})
+          if(userWithRefer.referral_from_id && type == "Credit"){
+            let getAll = await Transaction.find({payee:getTra.payee,status:"Success"})
+            console.log("userWithRefer++++++.>>>>>>>>>",getAll.length)
+            if(getAll.length == 1){
+              let txnRefId = 'CHETAK' + new Date().getTime();
+              let getAdminSetting = await AdminSetting.findOne()
+              let getFromUser = await User.findOne({referral_id:userWithRefer.referral_from_id})
+              let walletUpdate = await WalletSettings.updateOne({userId:getFromUser._id},{$inc:{balance:Number(getAdminSetting.referral_bonus)}})
+              let add = {
+                payee:getFromUser._id,
+                receiver:getFromUser._id,
+                amount:Number(getAdminSetting.referral_bonus),
+                transaction_mode:"Referral",
+                transaction_type:"Credit",
+                // wallet_id:previousBalance._id,
+                transaction_id:txnRefId,
+                status:"Success"
+              }
+              let createTra = await Transaction.create(add)
+
+            console.log("userWithRefer++++++.>>>>>>>>>",getFromUser,getAdminSetting)
+            }
+          }
+
         }
         if(statusChange){
           return _RS.api(

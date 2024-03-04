@@ -38,6 +38,7 @@ export const Login = () => {
   }
 
   const handleSubmit = () => {
+    console.log("hancleerror")
     for (const key in userInput) {
       if (userInput.hasOwnProperty(key)) {
         const validation = userInput[key as keyof userInput];
@@ -60,7 +61,8 @@ export const Login = () => {
       data: userInput,
       onSuccess: (data) => {
         // setLoading(false);
-        if (data.status) {
+        console.log("data===========>>>>>>>>>...",data)
+        if (data?.status) {
           setIsLoggedIn(true);
           localStorage.setItem("token", data.data.token);
           localStorage.setItem("userProfile", JSON.stringify(data.data.user));
@@ -108,12 +110,12 @@ export const Login = () => {
                              <hr/>
                            <div className="form-group ">
                             <img className="input_icon" src="img/call.svg" />
-                            <input   type="text" name="mobile_number" className="form-control" value={userInput.mobile_number} onChange={handleChange} placeholder="Phone number" />
+                            <input   type="text" name="mobile_number" className="form-control" value={userInput.mobile_number} onChange={handleChange} placeholder="Phone Number" />
                               <span style={{color:"red"}}>{userInputError.mobile_numberError}</span>
                            </div>
                            <div className="form-group ">
                               <img className="input_icon" src="img/key.svg" />
-                            <input   type="text" name="password"  className="form-control" value={userInput.password} onChange={handleChange} placeholder="Please enterPassword" />
+                            <input   type="text" name="password"  className="form-control" value={userInput.password} onChange={handleChange} placeholder="Please Enter Password" />
                               <span style={{color:"red"}}>{userInputError.passwordError}</span>
                            </div>
                             

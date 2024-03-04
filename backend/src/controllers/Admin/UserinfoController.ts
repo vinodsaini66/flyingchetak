@@ -79,7 +79,7 @@ export class UserInfoController {
 						account_holder: 1,
 					  },
 					}
-				  ]);
+				  ]).sort({ created_at: -1 });
 				return _RS.api(
 				  res,
 				  true,
@@ -126,6 +126,34 @@ export class UserInfoController {
 			next(err);
 		}
 	}
+
+	static async statusChange(req, res, next) {
+		const startTime = new Date().getTime();
+		try {
+			const {
+				id
+			} = req.params
+			console.log("id=======>>>>>>>>>>",id)
+			let isUsersExist = await User.findOne({ _id:id });
+			if (!isUsersExist) {
+				return _RS.notFound(res, 'NOTFOUND', '', isUsersExist, startTime);
+			}
+
+			(isUsersExist.is_active = true ? !isUsersExist.is_active:isUsersExist.is_active)
+				isUsersExist.save();
+
+			return _RS.ok(
+				res,
+				'SUCCESS',
+				'Status updated successfully',
+				{ users: isUsersExist },
+				startTime
+			);
+		} catch (err) {
+			next(err);
+		}
+	}
+
 
 	static async addEdit(req, res, next) {
 		const startTime = new Date().getTime();

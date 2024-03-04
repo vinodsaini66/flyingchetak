@@ -53,7 +53,7 @@ const useGame = () => {
 			let payload: any = {
 				amount: amount,
 				boxType:type,
-				betType:betType,
+				betType:betType
 			};
 			request({
 				url: apiPath.gameDeposit,
@@ -80,10 +80,9 @@ const useGame = () => {
 			ShowToast(`Min Bet should be of ${minBetAmount}`, Severty.ERROR);
 		} else {
 			let payload: any = {
-				amount: amount,
+				amount: amount*x,
 				boxType:type,
-				betType:betType,
-				x:x
+				betType:betType
 			};
 			request({
 				url: apiPath.gameAutoDeposite,
@@ -131,14 +130,15 @@ const useGame = () => {
 		source.addEventListener('message', (e) => {
 			console.log(e.data);
 			const data = JSON.parse(e.data);
-			console.log(data, '=------ data');
 			if (data?.status) {
 				if (data?.data?.is_game_end) {
 					setIsGameEnd(true);
 					source.close();
 				}
-				if (data?.data?.X) {
-					setX(data.data.X);
+				console.log('=------ beforedata',data.data);
+				if (data?.data?.timer>-1) {
+			console.log('=------ afterdata',data.data);
+					setX(data.data.timer);
 				}
 				if (data?.data?.allBets) {
 					setBets(data.data.allBets);

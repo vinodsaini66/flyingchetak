@@ -23,12 +23,27 @@ class ChannelRouter {
       Authentication.admin,
       ChannelController.DeleteChannel
     );
+    this.router.post(
+      "/add-edit",
+      Authentication.admin,
+      ChannelController.AddEditUtr
+    );
+    this.router.post(
+      "/utr/check_order_status",
+      Authentication.admin,
+      ChannelController.CheckStatusViaUtr
+    );
   }
   public get() {
       this.router.get(
         "/get",
         Authentication.admin,
         ChannelController.getChannels
+      );
+      this.router.get(
+        "/get-utr",
+        Authentication.admin,
+        ChannelController.getUtr
       );
 
   }

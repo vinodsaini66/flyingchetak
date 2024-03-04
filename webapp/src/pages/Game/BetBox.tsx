@@ -1,5 +1,5 @@
 export const BetBox = ({string1,string2,boxType,setBoxType,bets,x,Withdrawal,amount,setAmount,Deposite,autoDeposite,setBoxChecked,boxChecked,boxX,setBoxX}:any) => {
-
+    console.log("betsbetsbetsbetsbets",bets,x)
         return (
             <div className="col-md-6 mb-mb-0 mb-4">
             <div className="game_box game_box_2">
@@ -20,7 +20,8 @@ export const BetBox = ({string1,string2,boxType,setBoxType,bets,x,Withdrawal,amo
        
                                            <div className="tab-content">
                                            {bets &&
-                                           bets?.deposit_amount && 
+                                           bets?.deposit_amount && bets.
+                                           status !== "Placed" && 
                                            x ? (
                                                <div id='Bet' className='tab-pane  in active'>
                                                    <div className='bet-block d-flex flex-column'>
@@ -46,7 +47,7 @@ export const BetBox = ({string1,string2,boxType,setBoxType,bets,x,Withdrawal,amo
                                                    </div>
                                                </div>
                                            ) : (
-                                            (boxType === string1 && !bets) && <div id="Bet" className="tab-pane  in active"> 
+                                            (boxType === string1) && <div id="Bet" className="tab-pane  in active"> 
        
        <div  className="first-row auto-game-feature auto-game">
           <div  className="bet-block">
@@ -70,7 +71,7 @@ export const BetBox = ({string1,string2,boxType,setBoxType,bets,x,Withdrawal,amo
              </div>
           </div>
           <div  className="buttons-block">
-             <button  className="btn btn-success bet ng-star-inserted" onClick={()=>Deposite(amount,string1 == "Bet1"?"FIRST":"SECOND","Manual")}>
+             <button  className="btn btn-success bet ng-star-inserted" onClick={()=>Deposite(amount,string1 == "Bet1"?"FIRST":"SECOND","Manual",x)}>
                <span  className="d-flex flex-column justify-content-center align-items-center">
                  <label  className="label text-uppercase"> Bet </label>
                   <label  className="amount"><span >{amount}₹</span></label></span></button> 
@@ -102,7 +103,7 @@ export const BetBox = ({string1,string2,boxType,setBoxType,bets,x,Withdrawal,amo
              </div>
           </div>
           <div  className="buttons-block">
-             <button  className="btn btn-success bet ng-star-inserted" onClick={()=>autoDeposite(amount,string1 == "Bet1"?"FIRST":"SECOND","Auto",boxX)}>
+             <button  className="btn btn-success bet ng-star-inserted" onClick={()=>autoDeposite(amount,string1 == "Bet1"?"FIRST":"SECOND","Auto",boxX,x)}>
                <span  className="d-flex flex-column justify-content-center align-items-center">
                  <label className="label text-uppercase"> Bet </label>
                   <label className="amount"><span >{amount}₹</span></label></span></button> 

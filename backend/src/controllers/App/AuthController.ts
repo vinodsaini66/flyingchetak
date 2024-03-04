@@ -219,23 +219,7 @@ export class AuthController {
 						referral_id:referral_from_id
 					});
 					console.log("referral_id============>>>>>>>>>>>.",referral_from_id,getUserByReferral)
-					if(getUserByReferral){
-						let getAdminReferralBonus = await AdminSetting.findOne()
-						let updateWallet = await Wallet.updateOne({userId:getUserByReferral._id},{$inc:{balance:getAdminReferralBonus.referral_bonus}})
-						let txnRefId = 'CHETAK' + new Date().getTime();
-						let add = {
-							payee:getUserByReferral._id,
-							receiver:getUserByReferral._id,
-							amount:Number(getAdminReferralBonus.referral_bonus),
-							transaction_mode:"Referral",
-							transaction_type:"Credit",
-							// wallet_id:previousBalance._id,
-							transaction_id:txnRefId,
-							status:"Approved"
-						  }
-						let transactions = await TransactionSetting.create(add)
-					}
-					else{
+					if(!getUserByReferral){
 						return _RS.api(
 							res,
 							false,
@@ -244,7 +228,6 @@ export class AuthController {
 							startTime
 						);
 					}
-	
 				}
 				let user = await User.create(payload);
 				const walletPayload = {
@@ -766,28 +749,27 @@ export class AuthController {
 				mobile_number,
 				email,
 			} = req.body;
-			// const image = req.file.filename
 
 			const user = await User.findOne({ _id: req.user.id });
 			if (!user) {
 				return _RS.api(res, false, 'UserNotFound', {}, startTime);
 			} // Replace with the mobile number or email you're checking
 
-				let userExistWithThisMailOrMobileNumber = await User.find({
-					$or: [
-						{ mobile_number: mobile_number },
-						{ email: email }
-					]
-					});
-				if(userExistWithThisMailOrMobileNumber.length>0){
-					return _RS.api(
-						res,
-						false,
-						'Email or Mobile Number Already Exist',
-						{},
-						startTime
-					);
-				}
+				// let userExistWithThisMailOrMobileNumber = await User.find({
+				// 	$or: [
+				// 		{ mobile_number: mobile_number },
+				// 		{ email: email }
+				// 	]
+				// 	});
+				// if(userExistWithThisMailOrMobileNumber.length>0){
+				// 	return _RS.api(
+				// 		res,
+				// 		false,
+				// 		'Email or Mobile Number Already Exist',
+				// 		{},
+				// 		startTime
+				// 	);
+				// }
 
 			user.name = name ? name : user.name;
 			user.gender = gender ? gender : user.gender;
