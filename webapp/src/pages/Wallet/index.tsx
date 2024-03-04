@@ -9,7 +9,6 @@ import { Severty, ShowToast } from "../../helper/toast";
 import moment from "moment";
 import { WalletContext } from "../../context/WalletContext";
 import { SettingContext } from "../../context/SettingContext";
-import { BeatLoader, GridLoader, HashLoader } from "react-spinners";
 import Loader from "../../component/Loader";
 export const Wallet = () =>{
    const [open, setOpen] = useState<boolean>(false);
