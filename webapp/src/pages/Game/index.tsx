@@ -6,10 +6,14 @@ import { Graph } from './Graph';
 import { Footer } from '../../comman/Footer';
 import { AuthContext } from '../../context/AuthContext';
 import { BetBox } from './BetBox';
+import { LoaderPage } from './LoaderPage';
+import Loader from '../../component/Loader';
 
 export const Game = () => {
 	const [selectedBetTab, setSelectedBetTab] = useState<number>(0);
 	const [firstBoxBetAmount, setFirstBoxBetAmount] = useState<number>(10);
+	const [firstAmountError, setFirstAmountError] = useState<string>("");
+	const [secondAmountError, setSecondAmountError] = useState<string>("");
 	const [secondBoxBetAmount, setSecondBoxBetAmount] = useState<number>(10);
 	const [selectedBets, setSelectedBets] = useState<any[]>([]);
 	const [firstBoxType, setFirstBoxType] = useState<string>("Bet1")
@@ -25,6 +29,7 @@ export const Game = () => {
 		handleDeposit,
 		handleAutoDeposit,
 		fetchData,
+		isLoading,
 		fixData,
 		bets,
 		userBets,
@@ -34,7 +39,7 @@ export const Game = () => {
 		handleWithdraw,
 	} = useGame();
 	console.log(selectedBetTab);
-	console.log("userBets===>>>",userBets)
+	console.log("userBets===>>>",userBets,x,isGameEnd)
 
 
 	const [form] = Form.useForm();
@@ -68,6 +73,9 @@ export const Game = () => {
 
 	return (
 		<>
+
+			{isLoading?<LoaderPage/>:
+			<>
 			<div className='game_top d-flex in_nav align-items-center'>
 				<img
 					src='img/logo.png'
@@ -75,7 +83,7 @@ export const Game = () => {
 					className='logo in_nav_logo'
 				/>
 				<div className='ml-auto'>
-					<i className='fa fa-inr'></i> {fixData?.balance}
+					<i className='fa fa-inr'></i> {fixData?.balance?.toFixed(2)}
 				</div>
 				<div className='ml-4'>
 					<span className='user_img mr-3'>
@@ -200,15 +208,23 @@ export const Game = () => {
 						))}
 					</div>
 					{/* <div className="game_box mt-3 mb-3 h50 d-flex position-relative"> */}
-					<Graph x={x}/>
-{/* </div> */}
+					{/* <Graph x={x}/> */}
+				{/* </div> */}
 					
-					{/* {isGameEnd && (
+					{!isGameEnd? (
+						<div>
 						<div className='game_box mt-3 mb-3 h50 d-flex flex-column position-relative'>
-							<h1 className='m-auto'>{x}X</h1>
-							<h1 className='m-auto'>Game End</h1>
+							<h1 className='m-auto'>{x?.toFixed(2)}X</h1>
+							{/* <h1 className='m-auto'>Game End</h1> */}
+						<img src="../../img/horse-running.gif"  width={200} height={100} style={{marginLeft:"40%"}}/>
 						</div>
-					)} */}
+						</div>
+					):<div>
+					<div className='game_box mt-3 mb-3 h50 d-flex flex-column position-relative'>
+					<h1 className='m-auto'><Loader/></h1>
+					<h3 className='m-auto'>Game Is Starting...</h3>
+					</div>
+					</div>}
 					<div className="row">
   {/* <div className="col-md-6 mb-mb-0 mb-4">
      <div className="game_box game_box_2">
@@ -345,6 +361,8 @@ export const Game = () => {
 <BetBox 
 	string1={"Bet1"}
 	string2={"Auto1"}
+	error={firstAmountError}
+	setError={setFirstAmountError}
 	boxType={firstBoxType}
 	setBoxType={setFirstBoxType}
 	bets={userBets && userBets[0]}
@@ -362,6 +380,8 @@ export const Game = () => {
 	<BetBox 
 	string1={"Bet2"}
 	string2={"Auto2"}
+	error={secondAmountError}
+	setError={setSecondAmountError}
 	boxType={secondBoxType}
 	setBoxType={setSecondBoxType}
 	bets={userBets && userBets[1]}
@@ -928,7 +948,7 @@ export const Game = () => {
 						</div>
 					</div> */}
 				</div>
-			</div>
+			</div></>}
 			{/* <Footer/> */}
 		</>
 	);

@@ -31,7 +31,7 @@ const Header = () => {
                 <Link className={url == "/account"?"nav-link active":"nav-link"} to="/account" >Account </Link>
               </li>
                <li className="nav-item">
-                <Link className={url == "/game"?"nav-link active":"nav-link"} to="/game" >Game Play </Link>
+                <Link className={url == "/game"?"nav-link active":"nav-link"} to="/game" target="_blank" >Game Play </Link>
               </li>
             </ul>
        

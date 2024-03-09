@@ -1,5 +1,26 @@
-export const BetBox = ({string1,string2,boxType,setBoxType,bets,x,Withdrawal,amount,setAmount,Deposite,autoDeposite,setBoxChecked,boxChecked,boxX,setBoxX}:any) => {
-    console.log("betsbetsbetsbetsbets",bets,x)
+export const BetBox = ({string1,string2,error,setError,boxType,setBoxType,bets,x,Withdrawal,amount,setAmount,Deposite,autoDeposite,setBoxChecked,boxChecked,boxX,setBoxX}:any) => {
+const handleAmountClick = (type:string,amnt:number) => {
+    console.log("handleamountchnge",type,amnt,amount)
+    amount+amnt>8000 ? setError("Amount should be less than 8000"):setError("")
+    if(type == 'Dec' && amount>=10){
+        setAmount(amount-amnt)
+    }
+    else{
+    setAmount(amount+amnt)
+    }
+    
+}
+const handleAmountChange = (e:any) => {
+    let value = Number(e.target.value)
+    if(value>8000){
+        setError("Amount should be less than 8000")
+    }
+    else{
+        setError("")
+    }
+    setAmount(value)
+
+}
         return (
             <div className="col-md-6 mb-mb-0 mb-4">
             <div className="game_box game_box_2">
@@ -53,21 +74,20 @@ export const BetBox = ({string1,string2,boxType,setBoxType,bets,x,Withdrawal,amo
           <div  className="bet-block">
              <div   className="spinner ng-untouched ng-valid ng-dirty">
                 <div  className="spinner big">
-                   <div  className="buttons"><button  type="button" className="minus ng-star-inserted" onClick={()=>{amount>=10 && setAmount(amount-10)}}><i className="fa fa-minus" ></i></button></div>
-                   <div  className="input full-width"><input  type="text" className="font-weight-bold"
+                   <div  className="buttons"><button  type="button" className="minus ng-star-inserted"onClick={()=>{handleAmountClick("Dec",10)}}><i className="fa fa-minus" ></i></button></div>
+                   <div  className="input full-width"><input  type="number" min={0} max={8000} className="font-weight-bold"
                                                                value={amount}
-                                                               onChange={(e:any) => {
-                                                                   setAmount(e?.target.value)
-                                                               }} /></div>
-                   <div  className="buttons"><button  type="button" className="plus ng-star-inserted" onClick={()=>{setAmount(amount+10)}}><i className="fa fa-plus" ></i></button></div>
+                                                               onChange={handleAmountChange}/></div>
+                                                              <span style={{color:"red"}}>{error}</span>
+                   <div  className="buttons"><button  type="button" className="plus ng-star-inserted" onClick={()=>{handleAmountClick("Inc",10)}}><i className="fa fa-plus" ></i></button></div>
                 </div>
                 
              </div>
              <div  className="bets-opt-list">
-               <button  className="btn btn-secondary bet-opt " onClick={()=>{setAmount(10)}}><span > 10 </span></button>
-               <button  className="btn btn-secondary bet-opt " onClick={()=>{setAmount(100)}}><span > 100 </span></button>
-               <button  className="btn btn-secondary bet-opt " onClick={()=>{setAmount(500)}}><span > 500 </span></button>
-               <button  className="btn btn-secondary bet-opt " onClick={()=>{setAmount(1000)}}><span > 1000 </span></button>
+               <button  className="btn btn-secondary bet-opt" onClick={()=>{handleAmountClick("Inc",10)}}><span > 10 </span></button>
+               <button  className="btn btn-secondary bet-opt" onClick={()=>{handleAmountClick("Inc",100)}}><span > 100 </span></button>
+               <button  className="btn btn-secondary bet-opt" onClick={()=>{handleAmountClick("Inc",500)}}><span > 500 </span></button>
+               <button  className="btn btn-secondary bet-opt" onClick={()=>{handleAmountClick("Inc",1000)}}><span > 1000 </span></button>
              </div>
           </div>
           <div  className="buttons-block">
@@ -85,21 +105,21 @@ export const BetBox = ({string1,string2,boxType,setBoxType,bets,x,Withdrawal,amo
           <div  className="bet-block">
              <div   className="spinner ng-untouched ng-valid ng-dirty">
                 <div  className="spinner big">
-                   <div  className="buttons"><button  type="button" onClick={()=>{amount >=10 && setAmount(amount-10)}} className="minus ng-star-inserted"><i className="fa fa-minus" ></i></button></div>
-                   <div  className="input full-width"><input  type="text" className="font-weight-bold"
+                   <div  className="buttons"><button  type="button" onClick={()=>{handleAmountClick("Dec",10)}} className="minus ng-star-inserted"><i className="fa fa-minus" ></i></button></div>
+                   <div  className="input full-width"><input  type="number" min={0} max={8000}  className="font-weight-bold"
                                                                value={amount}
-                                                               onChange={(e:any) => {
-                                                                   setAmount(e?.target.value)
-                                                               }} /></div>
-                   <div  className="buttons"><button  type="button" onClick={()=>{setAmount(amount-10)}} className="plus ng-star-inserted"><i className="fa fa-plus" ></i></button></div>
+                                                               onChange={handleAmountChange} />
+                                                                 <span style={{color:"red"}}>{error}</span></div>
+                                                             
+                   <div  className="buttons"><button  type="button" onClick={()=>{handleAmountClick("Inc",10)}} className="plus ng-star-inserted"><i className="fa fa-plus" ></i></button></div>
                 </div>
                 
              </div>
              <div  className="bets-opt-list">
-                 <button className="btn btn-secondary bet-opt" onClick={()=>{setAmount(10)}}><span> 10 </span></button>
-               <button  className="btn btn-secondary bet-opt" onClick={()=>{setAmount(100)}}><span> 100 </span></button>
-               <button  className="btn btn-secondary bet-opt" onClick={()=>{setAmount(500)}}><span> 500 </span></button>
-               <button  className="btn btn-secondary bet-opt" onClick={()=>{setAmount(1000)}}><span> 1000 </span></button>
+                 <button className="btn btn-secondary bet-opt" onClick={()=>{handleAmountClick("Inc",10)}}><span> 10 </span></button>
+               <button className="btn btn-secondary bet-opt" onClick={()=>{handleAmountClick("Inc",100)}}><span> 100 </span></button>
+               <button className="btn btn-secondary bet-opt" onClick={()=>{handleAmountClick("Inc",500)}}><span> 500 </span></button>
+               <button className="btn btn-secondary bet-opt" onClick={()=>{handleAmountClick("Inc",1000)}}><span> 1000 </span></button>
              </div>
           </div>
           <div  className="buttons-block">

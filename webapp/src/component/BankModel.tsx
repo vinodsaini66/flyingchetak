@@ -5,6 +5,7 @@ import { Severty, ShowToast } from "../helper/toast";
 import { BankInfo, BankInfoError } from "../Interface/Bank";
 import BankValidation from "../validation/BankVal";
 import { AuthContext } from "../context/AuthContext";
+import Loader from "./Loader";
  
 const BankModel = ({ isOpen, onClose,setOpen,getProfile, children }:any) => {
     const [bankInfo, setBankInfo] = useState<BankInfo>({
@@ -17,6 +18,7 @@ const BankModel = ({ isOpen, onClose,setOpen,getProfile, children }:any) => {
         ifsc_codeError:"",
         account_numberError:""
     })
+    const[isLoading, setIsLoading] = useState<boolean>(false)
     const { request } = useRequest()
     const { userProfile } = useContext(AuthContext)
     
@@ -52,12 +54,13 @@ const BankModel = ({ isOpen, onClose,setOpen,getProfile, children }:any) => {
    const handleSubmit = () => {
     if(error.account_holderError || error.account_numberError || error.ifsc_codeError)return false
     if(!bankInfo.account_holder || !bankInfo.account_number || !bankInfo.ifsc_code)return false
+    setIsLoading(true)
             request({
                 url: apiPath.bankInfo,
                 method: "POST",
                 data: bankInfo,
                 onSuccess: (data) => {
-                  // setLoading(false);
+                  setIsLoading(false);
                   console.log("walletwallet",data)
                   if (data.status) {
                     ShowToast(data.message, Severty.SUCCESS);
@@ -129,7 +132,7 @@ const BankModel = ({ isOpen, onClose,setOpen,getProfile, children }:any) => {
                             </div>
 
                              <div className="form-group">
-                              <button  type="submit" onClick={handleSubmit}  className="btn_man w100">+Add</button>
+                              <button  type="submit" onClick={handleSubmit} disabled={isLoading}  className="btn_man w100">{isLoading && <Loader/>}+Add</button>
                             </div>
                             <div className="form-group">
                               <button  type="button" onClick={()=>onClose(setOpen)} className="btn_man w100">Close</button>

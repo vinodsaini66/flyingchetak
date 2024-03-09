@@ -14,6 +14,8 @@ const useGame = () => {
 	const [betAmount, setBetAmount] = useState<number>(10);
 	const [minBetAmount, setMinBetAmount] = useState<number>(10);
 	const [isGameEnd, setIsGameEnd] = useState<boolean>();
+	const [isLoading, setIsLoading] = useState<boolean>(true);
+
 
 	const { request } = useRequest();
 
@@ -131,14 +133,18 @@ const useGame = () => {
 			console.log(e.data);
 			const data = JSON.parse(e.data);
 			if (data?.status) {
-				if (data?.data?.is_game_end) {
-					setIsGameEnd(true);
-					source.close();
-				}
+				setIsLoading(false)
+				console.log("sdjfsdjbfsdhfhbsd",data)
+				
 				console.log('=------ beforedata',data.data);
 				if (data?.data?.timer>-1) {
 			console.log('=------ afterdata',data.data);
 					setX(data.data.timer);
+					setIsGameEnd(false);
+				}
+				else {
+					setIsGameEnd(true);
+					// source.close();
 				}
 				if (data?.data?.allBets) {
 					setBets(data.data.allBets);
@@ -159,6 +165,7 @@ const useGame = () => {
 		handleAutoDeposit,
 		fetchData,
 		setBets,
+		isLoading,
 		fixData: {
 			minBetAmount,
 			balance,

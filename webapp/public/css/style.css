@@ -64,6 +64,10 @@ button:active {
   z-index: 999;
   overflow: hidden;
 }
+.loading-page{
+  text-align: center;
+  margin-top: 20%;
+}
 .loader {
   border: 8px solid #f3f3f3; /* Light gray */
   border-top: 8px solid #15181a; /* Blue */

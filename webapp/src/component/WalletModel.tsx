@@ -160,12 +160,6 @@ const WalletModal = ({ onClose,setOpen, children }:any) => {
                      </div>
                 </>
             </div>
-            {/* {
-              QrCodeModelsOpen && <QrCodeModels 
-               qrData={qrData}
-               setQrCodeModelsOpen={setQrCodeModelsOpen}
-               />
-            } */}
         </div>
     );
 };
