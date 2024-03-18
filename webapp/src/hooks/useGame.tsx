@@ -15,6 +15,7 @@ const useGame = () => {
 	const [minBetAmount, setMinBetAmount] = useState<number>(10);
 	const [isGameEnd, setIsGameEnd] = useState<boolean>();
 	const [isLoading, setIsLoading] = useState<boolean>(true);
+	const [fallRate, setFallRate] = useState<any[]>([]);
 
 
 	const { request } = useRequest();
@@ -45,8 +46,24 @@ const useGame = () => {
 			},
 		});
 	};
+	const fetchFallRate = () => {
+		request({
+			url: apiPath.fallrate,
+			method: 'GET',
+			onSuccess: ({ data, status }) => {
+				console.log("sdbsdfbsdhfsdshf",data,status)
+				if (status) {
+					setFallHistory(data);
+				}
+			},
+			onError: (error) => {
+				ShowToast(error, Severty.ERROR);
+			},
+		});
+	};
 
 	const handleDeposit = (amount: number,type:string,betType:string) => {
+		console.log("beterror====>>>>",balance,amount)
 		if (balance < amount) {
 			ShowToast("You Don't have sufficient balance", Severty.ERROR);
 		} else if (amount < minBetAmount) {
@@ -134,11 +151,13 @@ const useGame = () => {
 			const data = JSON.parse(e.data);
 			if (data?.status) {
 				setIsLoading(false)
-				console.log("sdjfsdjbfsdhfhbsd",data)
-				
-				console.log('=------ beforedata',data.data);
 				if (data?.data?.timer>-1) {
-			console.log('=------ afterdata',data.data);
+					let local:any = localStorage.getItem("betConfig")
+					let local1  =JSON.parse(local)
+					if(local1){
+						handleDeposit(local1.amount,local1.type,local1.betType)
+						localStorage.removeItem("betConfig")
+					}
 					setX(data.data.timer);
 					setIsGameEnd(false);
 				}
@@ -156,7 +175,10 @@ const useGame = () => {
 		});
 
 		return () => {
-			source.close();
+			console.log("jbsdjfsbdjhbdfhj",source.readyState,EventSource.CLOSED)
+			if (source.readyState !== EventSource.CLOSED) {
+			  source.close(); // Close only if not already closed
+			}
 		};
 	}, []);
 
@@ -164,6 +186,7 @@ const useGame = () => {
 		handleDeposit,
 		handleAutoDeposit,
 		fetchData,
+		fetchFallRate,
 		setBets,
 		isLoading,
 		fixData: {

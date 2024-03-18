@@ -1,7 +1,7 @@
-// const baseURL = 'http://35.202.132.15/';
-// const baseLOCALURL = "https://web.thelotusonline777.com/"
-const baseURL = "http://192.168.1.5:8002/"
-const baseLOCALURL = "http://localhost:3000/"
+const baseURL = 'http://35.202.132.15/';
+const baseLOCALURL = "https://web.thelotusonline777.com/"
+// const baseURL = "http://192.168.1.5:8002/"
+// const baseLOCALURL = "http://localhost:3000/"
 
 
 const apiPath = {
@@ -24,7 +24,8 @@ const apiPath = {
 	gameAutoDeposite:"api/app/game/autoBet",
 	gameWithdraw: 'api/app/game/withdraw',
 	getChannels:"api/app/channel/get",
-	getBets:"api/app/game/bets"
+	getBets:"api/app/game/bets",
+	fallrate:"api/app/game/fall-rate"
 };
 
 export { baseURL, apiPath,baseLOCALURL };

@@ -17,6 +17,7 @@ class GameRoutes {
     get() {
         this.router.get('/', Authentication_1.default.user, GameController_1.GameController.getGamePageData);
         this.router.get('/bets', Authentication_1.default.user, GameController_1.GameController.totalBet);
+        this.router.get('/fall-rate', Authentication_1.default.user, GameController_1.GameController.Fallrate);
     }
 }
 exports.default = new GameRoutes().router;

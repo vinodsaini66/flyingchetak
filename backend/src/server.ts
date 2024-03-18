@@ -14,7 +14,7 @@ import { GameController } from './controllers/App/GameController';
 const app = express();
 const cookieParser = require('cookie-parser');
 
-const SEND_INTERVAL = 1000;
+const SEND_INTERVAL = 500;
 
 export class Server {
 	public app: express.Application = express();
@@ -144,7 +144,7 @@ export class Server {
 		const handleGameInterval = async () => {
 			let timeStart = 0;
 		//   const gameInterval = setInterval(async () => {
-			console.log("IntervalCall");
+			// console.log("IntervalCall");
 			const gameData: {
 			  message: string;
 			  status: boolean | number;
@@ -162,6 +162,7 @@ export class Server {
 				  status: gameData.status,
 				  data: gameData.data,
 				  startTime: startTime,
+				//   timer:0.00,
 				})
 			  );
 			  setTimeout(() => handleGameInterval(), 10000);

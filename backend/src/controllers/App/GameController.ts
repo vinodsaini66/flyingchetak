@@ -14,6 +14,10 @@ import AdminSetting from '../../models/AdminSetting';
 const { ObjectId } = require('mongodb');
 let timer = 0;
 let gameId = "";
+let secondCount = 0;
+const myArray = [90, 60, 30, 40, 50];
+const randomIndex = Math.floor(Math.random() * myArray.length);
+let randomItem = myArray[randomIndex];
 export class GameController {
 	static async getGamePageData(req, res, next) {
 		const startTime = new Date().getTime();
@@ -69,6 +73,24 @@ export class GameController {
 				},
 				startTime
 			);
+		} catch (error) {
+			next(error);
+		}
+	}
+
+
+	static async Fallrate(req, res, next) {
+		const startTime = new Date().getTime();
+		try {
+			const fallrate = await Game.find().limit(10)
+				return _RS.api(
+					res,
+					true,
+					'Fall rate Get Successfully',
+					fallrate,
+					startTime
+				);
+			
 		} catch (error) {
 			next(error);
 		}
@@ -256,19 +278,20 @@ export class GameController {
 	}
 
 	// end game and generate new game.
-	static async endGame() {
+	static async endGame(timerValue) {
 		// return true;
 		try {
-			const myArray = [90, 60, 30, 40, 50];
-			const randomIndex = Math.floor(Math.random() * myArray.length);
-			const randomItem = myArray[randomIndex];
+			const myArray1 = [90, 60, 30, 40, 50];
+			const randomIndex1 = Math.floor(Math.random() * myArray.length);
+			 randomItem = myArray[randomIndex];
+			 secondCount =0;
 			const ongoingGame = await OngoingGame.findOne();
 			const nextGame = await Game.findById(ongoingGame?.next_game);
 
 			// change all current bet status to completed (only players who have't withdrawed money, as for else it was already updated to placed)
 			const updateBetStatus = await Bet.updateMany(
 				{
-					game_id: ongoingGame.current_game,
+					game_id: ongoingGame.current_game,					
 					status: BetStatus.ACTIVE,
 				},
 				{
@@ -308,9 +331,18 @@ export class GameController {
 					status: BetStatus.ACTIVE,
 				}
 			);
-
+			await Game.updateOne(
+				{
+					_id: ongoingGame.current_game,
+				},
+				{
+					fall_rate: Number(timerValue),
+				}
+			);
+console.log("Mujjkkir update ho gya hai x value");
 			ongoingGame.current_game = ongoingGame.next_game;
 			ongoingGame.next_game = newNextGame._id;
+			// ongoingGame.fall_rate = timerValue;
 
 			const maxBet = await Bet.findOne({ game_id: nextGame._id })
 				.sort({ deposit_amount: -1 })
@@ -408,7 +440,7 @@ export class GameController {
 			allBets.forEach((betsDetail, index) => {
 				GameController.withdrowalAutomatically(betsDetail._id);
 			});
-		const gameEnd = await GameController.endGame();
+		const gameEnd = await GameController.endGame(xValue);
 		}
 		return true;
 	};
@@ -420,21 +452,31 @@ export class GameController {
 		error: any;
 	}> {
 		try {	
-			const ongoingGame = await OngoingGame.findOne();
+			secondCount++;
+			// const ongoingGame = await OngoingGame.findOne();
 			// let id = ObjectId(ongoingGame?.current_game)
-				const currentGame = await Game.findOne({_id:ongoingGame?.current_game,is_game_end:false});
-				const timeDiffInMs1: number = currentGame?.end_time;
+				// const currentGame = await Game.findOne({_id:ongoingGame?.current_game,is_game_end:false});
+				// const timeDiffInMs1: number = currentGame?.end_time;
 							// result.length === 0 && 
-				console.log("gamedata.data============>>>>>>>>>>>>",Date.now())
-				if (Date.now() >= Number(timeDiffInMs1)) {
-					const gameEnd = await GameController.endGame();
-					currentGame.is_game_end = true
-					currentGame.save();
-					timer = 0;
-				}
-				else{
-					timer += 0.01
-				}
+				
+				// if (Date.now() >= Number(timeDiffInMs1)) {
+				// 	console.log("baintGame End ho gya hai ",Date.now())
+				// 	const gameEnd = await GameController.endGame();
+				// 	currentGame.is_game_end = true
+				// 	currentGame.save();
+				// 	timer = 0;
+				// }
+				// else{
+					if(randomItem == secondCount){
+						console.log("baintGame End ho gya hai ",Date.now());
+						setTimeout(() => GameController.endGame(timer), 10000);
+						// const gameEnd = await GameController.endGame(timer);
+						timer = 0;
+					}else{
+						timer += 0.01
+					}
+					
+				// }
 				return {
 					status: true,
 					message: 'Up Get Successfully',
@@ -497,29 +539,29 @@ export class GameController {
 			const timeDiffInMs: number = Date.now() - currentGame?.start_time
 			const timeDiffInMs1: number = currentGame?.end_time;
 			// result.length === 0 && 
-			if (Date.now() >= Number(timeDiffInMs1)) {
-				if(!currentGame.is_game_end){
-					console.log("handlegamehandlegame==============>>>>>>>>>>>...",currentGame)
-					const gameEnd = await GameController.endGame();
-					currentGame.is_game_end = true
-					currentGame.save()
-				}
+			// if (Date.now() >= Number(timeDiffInMs1)) {
+			// 	if(!currentGame.is_game_end){
+			// 		console.log("handlegamehandlegame==============>>>>>>>>>>>...",currentGame)
+			// 		const gameEnd = await GameController.endGame(timer);
+			// 		currentGame.is_game_end = true
+			// 		currentGame.save()
+			// 	}
 				
 
-				// if (!gameEnd) {
-					let X = 0;
-					return {
-						status: false,
-						message: 'Request Failed',
-						data: {
-							X,
-							allBets,
-							is_game_end:true
-						},
-						error: null,
-					};
-				// }
-			}
+			// 	// if (!gameEnd) {
+			// 		let X = 0;
+			// 		return {
+			// 			status: false,
+			// 			message: 'Request Failed',
+			// 			data: {
+			// 				X,
+			// 				allBets,
+			// 				is_game_end:true
+			// 			},
+			// 			error: null,
+			// 		};
+			// 	// }
+			// }
 
 			// if (!(gameTotal && remaining && baseAmount)) {
 				// const gameEnd = await GameController.endGame();
@@ -542,6 +584,7 @@ export class GameController {
 					data: {
 						allBets,
 						is_game_end: false,
+						timer:timer
 					},
 					error: null,
 				};
@@ -592,22 +635,35 @@ export class GameController {
 					},
 				},
 			]);
+			console.log("handleWithdrawRequest1")
 
 			const totalWithdrawAmount: number =
 				result.length > 0 ? result[0].totalWithdrawAmount : 0;
 
 			const remaining: number = +gameTotal - +totalWithdrawAmount;
+			console.log("handleWithdrawRequest2")
 
 			if (requested < remaining) {
-				// const gameEnd = await GameController.endGame();
-				// if (!gameEnd) {
-				// 	return _RS.api(res, false, 'Request Failed', {}, startTime);
-				// }
+		console.log("handleWithdrawRequest3")
+
+				const gameEnd = await GameController.endGame(timer);
+				if (!gameEnd) {
+					return _RS.api(res, false, 'Request Failed', {}, startTime);
+				}
 				bet.status = BetStatus.COMPLETED;
 				await bet.save();
+				
+
 				return _RS.api(res, false, 'Game Ended', {}, startTime);
 			}
-
+		console.log("handleWithdrawRequest4")
+			// await Wallet.findOneAndUpdate({
+			// 	userId: bet.user_id
+			//   }, {
+			// 	$inc: {
+			// 		balance: Number(requested)
+			// 	}
+			//   });
 			bet.withdraw_amount = requested;
 			bet.withdraw_at = Date.now();
 			bet.status = BetStatus.PLACED;
@@ -615,6 +671,7 @@ export class GameController {
 
 			return _RS.api(res, true, 'Bet Win', bet, startTime);
 		} catch (error) {
+		console.log("handleWithdrawRequest5")
 			next(error);
 		}
 	}

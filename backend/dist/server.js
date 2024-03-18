@@ -21,7 +21,7 @@ const path = require("path");
 const GameController_1 = require("./controllers/App/GameController");
 const app = express();
 const cookieParser = require('cookie-parser');
-const SEND_INTERVAL = 1000;
+const SEND_INTERVAL = 500;
 class Server {
     constructor() {
         this.app = express();
@@ -121,7 +121,7 @@ class Server {
                 var _a;
                 let timeStart = 0;
                 //   const gameInterval = setInterval(async () => {
-                console.log("IntervalCall");
+                // console.log("IntervalCall");
                 const gameData = yield GameController_1.GameController.handleGame();
                 if (!!((_a = gameData === null || gameData === void 0 ? void 0 : gameData.data) === null || _a === void 0 ? void 0 : _a.is_game_end)) {
                     console.log("gameEnd=====APICAll");
@@ -131,6 +131,7 @@ class Server {
                         status: gameData.status,
                         data: gameData.data,
                         startTime: startTime,
+                        //   timer:0.00,
                     }));
                     setTimeout(() => handleGameInterval(), 10000);
                 }

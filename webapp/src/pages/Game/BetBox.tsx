@@ -1,6 +1,7 @@
-export const BetBox = ({string1,string2,error,setError,boxType,setBoxType,bets,x,Withdrawal,amount,setAmount,Deposite,autoDeposite,setBoxChecked,boxChecked,boxX,setBoxX}:any) => {
+export const BetBox = ({string1,string2,error,setError,localType,localBetType,boxType,setBoxType,bets,x,Withdrawal,amount,setAmount,Deposite,autoDeposite,setBoxChecked,boxChecked,boxX,setBoxX}:any) => {
+    console.log("handleamountchnge",localType,localBetType)
+
 const handleAmountClick = (type:string,amnt:number) => {
-    console.log("handleamountchnge",type,amnt,amount)
     amount+amnt>8000 ? setError("Amount should be less than 8000"):setError("")
     if(type == 'Dec' && amount>=10){
         setAmount(amount-amnt)
@@ -91,10 +92,10 @@ const handleAmountChange = (e:any) => {
              </div>
           </div>
           <div  className="buttons-block">
-             <button  className="btn btn-success bet ng-star-inserted" onClick={()=>Deposite(amount,string1 == "Bet1"?"FIRST":"SECOND","Manual",x)}>
+          {(localType == "FIRST" || localType == "SECOND") && localBetType == "Manual"?<button className="btn btn-danger" onClick={()=>{localStorage.removeItem("betConfig")}}>Cancel</button>: <button  className="btn btn-success bet ng-star-inserted" onClick={()=>Deposite(amount,string1 == "Bet1"?"FIRST":"SECOND","Manual",x)}>
                <span  className="d-flex flex-column justify-content-center align-items-center">
                  <label  className="label text-uppercase"> Bet </label>
-                  <label  className="amount"><span >{amount}₹</span></label></span></button> 
+                  <label  className="amount"><span >{amount}₹</span></label></span></button>}
           </div>
        </div>
        </div>

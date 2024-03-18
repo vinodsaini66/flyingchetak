@@ -25,29 +25,42 @@ export const Game = () => {
 
 	const { userProfile } = useContext(AuthContext)
 
-	const {
-		handleDeposit,
-		handleAutoDeposit,
-		fetchData,
-		isLoading,
-		fixData,
-		bets,
-		userBets,
-		x,
-		isGameEnd,
-		setBets,
-		handleWithdraw,
-	} = useGame();
-	console.log(selectedBetTab);
-	console.log("userBets===>>>",userBets,x,isGameEnd)
-
+		const {
+			handleDeposit,
+			handleAutoDeposit,
+			fetchData,
+			fetchFallRate,
+			isLoading,
+			fixData,
+			bets,
+			userBets,
+			x,
+			isGameEnd,
+			setBets,
+			handleWithdraw,
+		} = useGame();
+	let val = localStorage.getItem("betConfig")
+	let betConfig = val && JSON.parse(val)
+	console.log("fixDatafixDatafixData",fixData)
 
 	const [form] = Form.useForm();
 
 	const formWatchedValues = Form.useWatch([], form);
 
 	const handleDepositFormSubmit = (amount: number,type:string,betType:string) => {
-		handleDeposit(amount,type,betType);
+		console.log("xxxxxxxxxxxxx========>>>>>",x)
+		if(x !== undefined && x>0){
+			let betConfig:any = {
+				amount:amount,
+				type:type,
+				betType:betType
+			} 
+			let val= JSON.stringify(betConfig)
+			localStorage.setItem("betConfig",val)
+		}
+		else{
+			handleDeposit(amount,type,betType);
+		}
 	};
 	const handleAutoDepositFormSubmit = (amount: number,type:string,betType:string,x:number) => {
 		handleAutoDeposit(amount,type,betType,x);
@@ -66,6 +79,7 @@ export const Game = () => {
 
 	useEffect(() => {
 		fetchData();
+		fetchFallRate()
 	}, []);
 	useEffect(()=>{
 		handleBetChange(0)
@@ -203,8 +217,8 @@ export const Game = () => {
 
 				<div className='game_right'>
 					<div className='top_scor'>
-						{fixData?.fallHistory.map((item) => (
-							<span>{item}x</span>
+						{fixData?.fallHistory?.map((item) => (
+							<span>{item.fall_rate}x</span>
 						))}
 					</div>
 					{/* <div className="game_box mt-3 mb-3 h50 d-flex position-relative"> */}
@@ -367,6 +381,8 @@ export const Game = () => {
 	setBoxType={setFirstBoxType}
 	bets={userBets && userBets[0]}
 	x={x}
+	localType={betConfig?.type == "FIRST" && "FIRST" || ""}
+	localBetType={betConfig?.betType || ""}
 	Withdrawal={handleWithdraw}
 	amount={firstBoxBetAmount}
 	setAmount={setFirstBoxBetAmount}
@@ -386,6 +402,8 @@ export const Game = () => {
 	setBoxType={setSecondBoxType}
 	bets={userBets && userBets[1]}
 	x={x}
+	localType={betConfig?.type == "SECOND" && "SECOND" || ""}
+	localBetType={betConfig?.betType || ""}
 	Withdrawal={handleWithdraw}
 	amount={secondBoxBetAmount}
 	setAmount={setSecondBoxBetAmount}

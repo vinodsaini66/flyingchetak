@@ -22,6 +22,10 @@ const AdminSetting_1 = require("../../models/AdminSetting");
 const { ObjectId } = require('mongodb');
 let timer = 0;
 let gameId = "";
+let secondCount = 0;
+const myArray = [90, 60, 30, 40, 50];
+const randomIndex = Math.floor(Math.random() * myArray.length);
+let randomItem = myArray[randomIndex];
 class GameController {
     static getGamePageData(req, res, next) {
         var _b, _c, _d;
@@ -60,6 +64,18 @@ class GameController {
                     minBetAmount,
                     userBets,
                 }, startTime);
+            }
+            catch (error) {
+                next(error);
+            }
+        });
+    }
+    static Fallrate(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const startTime = new Date().getTime();
+            try {
+                const fallrate = yield Game_1.default.find().limit(10);
+                return ResponseHelper_1.default.api(res, true, 'Fall rate Get Successfully', fallrate, startTime);
             }
             catch (error) {
                 next(error);
@@ -210,14 +226,15 @@ class GameController {
         });
     }
     // end game and generate new game.
-    static endGame() {
+    static endGame(timerValue) {
         var _b, _c;
         return __awaiter(this, void 0, void 0, function* () {
             // return true;
             try {
-                const myArray = [90, 60, 30, 40, 50];
-                const randomIndex = Math.floor(Math.random() * myArray.length);
-                const randomItem = myArray[randomIndex];
+                const myArray1 = [90, 60, 30, 40, 50];
+                const randomIndex1 = Math.floor(Math.random() * myArray.length);
+                randomItem = myArray[randomIndex];
+                secondCount = 0;
                 const ongoingGame = yield OngoingGame_1.default.findOne();
                 const nextGame = yield Game_1.default.findById(ongoingGame === null || ongoingGame === void 0 ? void 0 : ongoingGame.next_game);
                 // change all current bet status to completed (only players who have't withdrawed money, as for else it was already updated to placed)
@@ -250,8 +267,15 @@ class GameController {
                 }, {
                     status: Bet_1.BetStatus.ACTIVE,
                 });
+                yield Game_1.default.updateOne({
+                    _id: ongoingGame.current_game,
+                }, {
+                    fall_rate: Number(timerValue),
+                });
+                console.log("Mujjkkir update ho gya hai x value");
                 ongoingGame.current_game = ongoingGame.next_game;
                 ongoingGame.next_game = newNextGame._id;
+                // ongoingGame.fall_rate = timerValue;
                 const maxBet = yield Bet_1.default.findOne({ game_id: nextGame._id })
                     .sort({ deposit_amount: -1 })
                     .exec();
@@ -272,21 +296,30 @@ class GameController {
     static getXValue() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const ongoingGame = yield OngoingGame_1.default.findOne();
+                secondCount++;
+                // const ongoingGame = await OngoingGame.findOne();
                 // let id = ObjectId(ongoingGame?.current_game)
-                const currentGame = yield Game_1.default.findOne({ _id: ongoingGame === null || ongoingGame === void 0 ? void 0 : ongoingGame.current_game, is_game_end: false });
-                const timeDiffInMs1 = currentGame === null || currentGame === void 0 ? void 0 : currentGame.end_time;
+                // const currentGame = await Game.findOne({_id:ongoingGame?.current_game,is_game_end:false});
+                // const timeDiffInMs1: number = currentGame?.end_time;
                 // result.length === 0 && 
-                console.log("gamedata.data============>>>>>>>>>>>>", Date.now());
-                if (Date.now() >= Number(timeDiffInMs1)) {
-                    const gameEnd = yield GameController.endGame();
-                    currentGame.is_game_end = true;
-                    currentGame.save();
+                // if (Date.now() >= Number(timeDiffInMs1)) {
+                // 	console.log("baintGame End ho gya hai ",Date.now())
+                // 	const gameEnd = await GameController.endGame();
+                // 	currentGame.is_game_end = true
+                // 	currentGame.save();
+                // 	timer = 0;
+                // }
+                // else{
+                if (randomItem == secondCount) {
+                    console.log("baintGame End ho gya hai ", Date.now());
+                    setTimeout(() => GameController.endGame(timer), 10000);
+                    // const gameEnd = await GameController.endGame(timer);
                     timer = 0;
                 }
                 else {
                     timer += 0.01;
                 }
+                // }
                 return {
                     status: true,
                     message: 'Up Get Successfully',
@@ -338,27 +371,27 @@ class GameController {
                 const timeDiffInMs = Date.now() - (currentGame === null || currentGame === void 0 ? void 0 : currentGame.start_time);
                 const timeDiffInMs1 = currentGame === null || currentGame === void 0 ? void 0 : currentGame.end_time;
                 // result.length === 0 && 
-                if (Date.now() >= Number(timeDiffInMs1)) {
-                    if (!currentGame.is_game_end) {
-                        console.log("handlegamehandlegame==============>>>>>>>>>>>...", currentGame);
-                        const gameEnd = yield GameController.endGame();
-                        currentGame.is_game_end = true;
-                        currentGame.save();
-                    }
-                    // if (!gameEnd) {
-                    let X = 0;
-                    return {
-                        status: false,
-                        message: 'Request Failed',
-                        data: {
-                            X,
-                            allBets,
-                            is_game_end: true
-                        },
-                        error: null,
-                    };
-                    // }
-                }
+                // if (Date.now() >= Number(timeDiffInMs1)) {
+                // 	if(!currentGame.is_game_end){
+                // 		console.log("handlegamehandlegame==============>>>>>>>>>>>...",currentGame)
+                // 		const gameEnd = await GameController.endGame(timer);
+                // 		currentGame.is_game_end = true
+                // 		currentGame.save()
+                // 	}
+                // 	// if (!gameEnd) {
+                // 		let X = 0;
+                // 		return {
+                // 			status: false,
+                // 			message: 'Request Failed',
+                // 			data: {
+                // 				X,
+                // 				allBets,
+                // 				is_game_end:true
+                // 			},
+                // 			error: null,
+                // 		};
+                // 	// }
+                // }
                 // if (!(gameTotal && remaining && baseAmount)) {
                 // const gameEnd = await GameController.endGame();
                 // if (!gameEnd) {
@@ -379,6 +412,7 @@ class GameController {
                     data: {
                         allBets,
                         is_game_end: false,
+                        timer: timer
                     },
                     error: null,
                 };
@@ -425,17 +459,28 @@ class GameController {
                         },
                     },
                 ]);
+                console.log("handleWithdrawRequest1");
                 const totalWithdrawAmount = result.length > 0 ? result[0].totalWithdrawAmount : 0;
                 const remaining = +gameTotal - +totalWithdrawAmount;
+                console.log("handleWithdrawRequest2");
                 if (requested < remaining) {
-                    // const gameEnd = await GameController.endGame();
-                    // if (!gameEnd) {
-                    // 	return _RS.api(res, false, 'Request Failed', {}, startTime);
-                    // }
+                    console.log("handleWithdrawRequest3");
+                    const gameEnd = yield GameController.endGame(timer);
+                    if (!gameEnd) {
+                        return ResponseHelper_1.default.api(res, false, 'Request Failed', {}, startTime);
+                    }
                     bet.status = Bet_1.BetStatus.COMPLETED;
                     yield bet.save();
                     return ResponseHelper_1.default.api(res, false, 'Game Ended', {}, startTime);
                 }
+                console.log("handleWithdrawRequest4");
+                // await Wallet.findOneAndUpdate({
+                // 	userId: bet.user_id
+                //   }, {
+                // 	$inc: {
+                // 		balance: Number(requested)
+                // 	}
+                //   });
                 bet.withdraw_amount = requested;
                 bet.withdraw_at = Date.now();
                 bet.status = Bet_1.BetStatus.PLACED;
@@ -443,6 +488,7 @@ class GameController {
                 return ResponseHelper_1.default.api(res, true, 'Bet Win', bet, startTime);
             }
             catch (error) {
+                console.log("handleWithdrawRequest5");
                 next(error);
             }
         });
@@ -556,7 +602,7 @@ GameController.checkAutoBet = (xValue, game_id) => __awaiter(void 0, void 0, voi
         allBets.forEach((betsDetail, index) => {
             GameController.withdrowalAutomatically(betsDetail._id);
         });
-        const gameEnd = yield GameController.endGame();
+        const gameEnd = yield GameController.endGame(xValue);
     }
     return true;
 });
