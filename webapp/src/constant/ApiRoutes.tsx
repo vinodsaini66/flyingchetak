@@ -1,4 +1,4 @@
-const baseURL = 'http://35.202.132.15/';
+const baseURL = 'http://34.134.23.12/';
 const baseLOCALURL = "https://web.thelotusonline777.com/"
 // const baseURL = "http://192.168.1.5:8002/"
 // const baseLOCALURL = "http://localhost:3000/"

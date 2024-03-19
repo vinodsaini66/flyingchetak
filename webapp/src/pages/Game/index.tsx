@@ -225,7 +225,7 @@ export const Game = () => {
 					{/* <Graph x={x}/> */}
 				{/* </div> */}
 					
-					{!isGameEnd? (
+					{!isGameEnd || !x ? (
 						<div>
 						<div className='game_box mt-3 mb-3 h50 d-flex flex-column position-relative'>
 							<h1 className='m-auto'>{x?.toFixed(2)}X</h1>

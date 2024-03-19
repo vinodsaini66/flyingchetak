@@ -14,7 +14,7 @@ import { GameController } from './controllers/App/GameController';
 const app = express();
 const cookieParser = require('cookie-parser');
 
-const SEND_INTERVAL = 500;
+const SEND_INTERVAL = 100;
 
 export class Server {
 	public app: express.Application = express();

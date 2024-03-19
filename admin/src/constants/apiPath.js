@@ -1,5 +1,5 @@
 
-const baseURL = 'http://35.202.132.15/api/';
+const baseURL = 'http://34.134.23.12/api/';
 // const baseURL = "http://localhost:8002/api/";
 let pathObj = {
   baseURL: baseURL,
