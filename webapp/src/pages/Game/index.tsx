@@ -1,5 +1,5 @@
 import { Button, Form, InputNumber, Tag } from 'antd';
-import { useContext, useEffect, useState } from 'react';
+import {  useContext, useEffect, useRef, useState } from 'react';
 
 import useGame from '../../hooks/useGame';
 import { Graph } from './Graph';
@@ -13,6 +13,7 @@ import { SingleBetBox } from './box';
 export const Game = () => {
 	const [selectedBetTab, setSelectedBetTab] = useState<number>(0);
 	const [selectedBets, setSelectedBets] = useState<any[]>([]);
+	const audioRef = useRef<HTMLAudioElement>(null);
 
 
 	const { userProfile } = useContext(AuthContext)
@@ -30,7 +31,7 @@ export const Game = () => {
 			isGameEnd,
 			setBets,
 			handleWithdraw,
-		} = useGame();
+		}:any = useGame();
 	let bet1 = localStorage.getItem("FirstBoxFutureBet")
 	let firstBoxBet = bet1 && JSON.parse(bet1)
     let bet2 = localStorage.getItem("SecondBoxFutureBet")
@@ -40,6 +41,17 @@ export const Game = () => {
 	const [form] = Form.useForm();
 
 	const formWatchedValues = Form.useWatch([], form);
+	useEffect(()=>{
+		// togglePlay()
+	},[isGameEnd])
+	const togglePlay = () => {
+		if (x == 1 && isGameEnd) {
+			audioRef?.current?.pause();
+		  } if(x > 1 && !isGameEnd && audioRef?.current) {
+			console.log("audoooooooooo",audioRef?.current)
+			audioRef?.current?.play();
+		  }
+	  };
 
 	const handleDepositFormSubmit = (amount: number,type:string,betType:string) => {
 		if(!isGameEnd ){
@@ -232,7 +244,7 @@ export const Game = () => {
 
 				<div className='game_right'>
 					<div className='top_scor'>
-						{fixData?.fallHistory?.map((item) => (
+						{fixData?.fallHistory?.map((item:any) => (
 							<span>{item.fall_rate.toFixed(2)}x</span>
 						))}
 					</div>
@@ -242,7 +254,12 @@ export const Game = () => {
 							<h1 className='m-auto'>{x?.toFixed(2)}X</h1>
 							{/* <h1 className='m-auto'>Game End</h1> */}
 						<img src="../../img/horse-running.gif"  width={200} height={100} style={{marginLeft:"40%"}}/>
-						{/* <source src="../../img/horseringtone.mp3" type="audio/mpeg" /> */}
+						{/* <div>
+							<audio ref={audioRef} loop>
+								<source src="../../img/horseringtone.mp3" type="audio/mpeg" />
+								Your browser does not support the audio element.
+							</audio>
+    					</div> */}
 						</div>
 						</div>
 					):<div>
