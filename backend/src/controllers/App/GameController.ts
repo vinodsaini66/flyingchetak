@@ -12,7 +12,7 @@ import Transaction, {
 } from '../../models/TransactionSetting';
 import AdminSetting from '../../models/AdminSetting';
 const { ObjectId } = require('mongodb');
-let timer = 0;
+let timer = 1;
 let gameId = "";
 let secondCount = 0;
 const myArray = [90, 60, 30, 40, 50];
@@ -20,6 +20,7 @@ const randomIndex = Math.floor(Math.random() * myArray.length);
 let randomItem = myArray[randomIndex];
 export class GameController {
 	static async getGamePageData(req, res, next) {
+		console.log("getgamepagedata=========>>>>>>>>>..")
 		const startTime = new Date().getTime();
 		try {
 			const ongoingGame = await OngoingGame.findOne().populate([
@@ -80,9 +81,11 @@ export class GameController {
 
 
 	static async Fallrate(req, res, next) {
+		console.log("Fallrate=========>>>>>>>>>..")
+
 		const startTime = new Date().getTime();
 		try {
-			const fallrate = await Game.find().limit(10)
+			const fallrate = await Game.find().limit(10).sort({created_at:-1})
 				return _RS.api(
 					res,
 					true,
@@ -97,6 +100,7 @@ export class GameController {
 	}
 
 	static async bet(req, res, next) {
+		console.log("bet==========>>>>>>>>>>>")
 		const startTime = new Date().getTime();
 		try {
 			const { amount,betType,boxType } = req.body;
@@ -133,7 +137,7 @@ export class GameController {
 			};
 
 			const bet = await new Bet(betData).save();
-			console.log("bet=====",bet);
+			console.log("bet=====>>>>>>>>>>",bet);
 			// update game total deposit
 			if (bet) {
 				const newAmount: number = +nextGame?.total_deposit + +amount;
@@ -178,6 +182,7 @@ export class GameController {
 
 	// auto bet 
 	static async autoBet(req, res, next) {
+		console.log("autoBet==========>>>>>>>>>>>")
 		const startTime = new Date().getTime();
 		try {
 			const { amount,xValue } = req.body;
@@ -210,7 +215,9 @@ export class GameController {
 				game_id: nextGame?._id, //next game id
 				user_id: req.user.id,
 				status: BetStatus.PENDING,
-				deposit_amount: amount,
+				deposit_amount: amount*xValue,
+				xValue:xValue,
+				betType:"auto"
 			};
 	
 			const bet = await new Bet(betData).save();
@@ -259,6 +266,7 @@ export class GameController {
 	// auto bet end function
 
 	static async getCurrentGameSession(req, res, next) {
+		console.log("getCurrentGameSession==========>>>>>>>>>>>")
 		const startTime = new Date().getTime();
 		try {
 			const activeGame = await Game.findOne({ is_active: true });
@@ -279,15 +287,14 @@ export class GameController {
 
 	// end game and generate new game.
 	static async endGame(timerValue) {
-		// return true;
 		try {
+			console.log("endGame==========>>>>>>>>>>>")
 			const myArray1 = [90, 60, 30, 40, 50];
 			const randomIndex1 = Math.floor(Math.random() * myArray.length);
 			 randomItem = myArray[randomIndex];
 			 secondCount =0;
 			const ongoingGame = await OngoingGame.findOne();
 			const nextGame = await Game.findById(ongoingGame?.next_game);
-
 			// change all current bet status to completed (only players who have't withdrawed money, as for else it was already updated to placed)
 			const updateBetStatus = await Bet.updateMany(
 				{
@@ -339,7 +346,6 @@ export class GameController {
 					fall_rate: Number(timerValue),
 				}
 			);
-console.log("Mujjkkir update ho gya hai x value");
 			ongoingGame.current_game = ongoingGame.next_game;
 			ongoingGame.next_game = newNextGame._id;
 			// ongoingGame.fall_rate = timerValue;
@@ -355,7 +361,7 @@ console.log("Mujjkkir update ho gya hai x value");
 			nextGame.base_amount = (maxBet?.deposit_amount)?(maxBet?.deposit_amount):10;
 			await nextGame.save();
 
-			await ongoingGame.save();
+			// await ongoingGame.save();
 
 			return true;
 		} catch (error) {
@@ -413,11 +419,13 @@ console.log("Mujjkkir update ho gya hai x value");
 			]);
 		const totalWithdrawAmount: number = result.length > 0 ? result[0].totalWithdrawAmount : 0;
         const remaining: number = +gameTotal - +totalWithdrawAmount;
-		if (bet.deposit_amount < remaining) {
-            // const gameEnd = await GameController.endGame();
-            // if (!gameEnd) {
-            // 	return _RS.api(res, false, 'Request Failed', {}, startTime);
-            // }
+		console.log("gamedatafrom======>>>>>>>",remaining,bet.deposit_amount)
+		if (bet.deposit_amount > remaining) {
+            const gameEnd = await GameController.endGame(timer);
+            if (!gameEnd) {
+				timer = 1
+            	return _RS.api("res", false, 'Request Failed', {}, "startTime");
+            }
             bet.status = BetStatus.COMPLETED;
             bet.save();
             return true;
@@ -431,16 +439,18 @@ console.log("Mujjkkir update ho gya hai x value");
 	} 
 
 	static checkAutoBet = async(xValue,game_id) => {
+		console.log("checkAutoBet==========>>>>>>>>>>>")
 		const allBets = await Bet.find({
 			game_id: game_id,
 			bidType: "auto",
 			xValue: xValue
 		}).populate([{ path: 'user_id' }]);
+		// console.log("checkautobet=========>>>>>>>>>",allBets)
 		if(allBets.length>0){
 			allBets.forEach((betsDetail, index) => {
 				GameController.withdrowalAutomatically(betsDetail._id);
 			});
-		const gameEnd = await GameController.endGame(xValue);
+		const gameEnd = await GameController.endGame(timer);
 		}
 		return true;
 	};
@@ -468,10 +478,10 @@ console.log("Mujjkkir update ho gya hai x value");
 				// }
 				// else{
 					if(randomItem == secondCount){
-						console.log("baintGame End ho gya hai ",Date.now());
-						setTimeout(() => GameController.endGame(timer), 10000);
-						// const gameEnd = await GameController.endGame(timer);
-						timer = 0;
+					console.log('timer and secondcount',randomItem,secondCount)
+						// ongosetTimeout(() => GameController.endGame(timer), 10000);
+						const gameEnd = await GameController.endGame(timer);
+						timer = 1;
 					}else{
 						timer += 0.01
 					}
@@ -507,9 +517,6 @@ console.log("Mujjkkir update ho gya hai x value");
 			const allBets = await Bet.find({
 				game_id: currentGame?._id,
 			}).populate([{ path: 'user_id' }]);
-			const project = { fall_rate: 1, _id: 0 };
-			// const fall_rate = await Game.find({},project)
-
 
 			const baseAmount: number = currentGame?.base_amount;
 			const gameTotal: number =
@@ -538,45 +545,11 @@ console.log("Mujjkkir update ho gya hai x value");
 			const remaining = +gameTotal - +totalWithdrawAmount;
 			const timeDiffInMs: number = Date.now() - currentGame?.start_time
 			const timeDiffInMs1: number = currentGame?.end_time;
-			// result.length === 0 && 
-			// if (Date.now() >= Number(timeDiffInMs1)) {
-			// 	if(!currentGame.is_game_end){
-			// 		console.log("handlegamehandlegame==============>>>>>>>>>>>...",currentGame)
-			// 		const gameEnd = await GameController.endGame(timer);
-			// 		currentGame.is_game_end = true
-			// 		currentGame.save()
-			// 	}
-				
-
-			// 	// if (!gameEnd) {
-			// 		let X = 0;
-			// 		return {
-			// 			status: false,
-			// 			message: 'Request Failed',
-			// 			data: {
-			// 				X,
-			// 				allBets,
-			// 				is_game_end:true
-			// 			},
-			// 			error: null,
-			// 		};
-			// 	// }
-			// }
-
-			// if (!(gameTotal && remaining && baseAmount)) {
-				// const gameEnd = await GameController.endGame();
-				// if (!gameEnd) {
-				// 	return {
-				// 		status: false,
-				// 		message: 'Request Failed',
-				// 		data: {},
-				// 		error: null,
-				// 	};
-				// }
-			// } else {
+			console.log("handlegamehandlegame==============>>>>>>>>>>>...",ongoingGame)
+			
 				let currentGameId = currentGame._id;
 				// const X = GameController.getUp();
-				// const checkAutoAPI = GameController.checkAutoBet(currentGame._id);
+				// const checkAutoAPI = GameController.checkAutoBet(timer,currentGame._id);
 
 				return {
 					status: true,
@@ -588,13 +561,6 @@ console.log("Mujjkkir update ho gya hai x value");
 					},
 					error: null,
 				};
-			// }
-			// return {
-			// 	status: true,
-			// 	message: 'Game Ended',
-			// 	data: { is_game_end: true, allBets },
-			// 	error: null,
-			// };
 		} catch (error) {
 			return {
 				status: false,
@@ -606,6 +572,7 @@ console.log("Mujjkkir update ho gya hai x value");
 	}
 
 	static async handleWithdrawRequest(req, res, next) {
+		console.log("handleWithdrawRequest=======>>>>>>>>>")
 		const startTime = new Date().getTime();
 		try {
 			const ongoingGame = await OngoingGame.findOne();
@@ -613,7 +580,7 @@ console.log("Mujjkkir update ho gya hai x value");
 
 			const betId = req.params.id;
 			const bet = await Bet.findById(betId);
-			const { requested } = req.body;
+			const { requestedAmount } = req.body;
 
 			const baseAmount: number = currentGame?.base_amount;
 			const gameTotal: number =
@@ -643,7 +610,7 @@ console.log("Mujjkkir update ho gya hai x value");
 			const remaining: number = +gameTotal - +totalWithdrawAmount;
 			console.log("handleWithdrawRequest2")
 
-			if (requested < remaining) {
+			if (requestedAmount < remaining) {
 		console.log("handleWithdrawRequest3")
 
 				const gameEnd = await GameController.endGame(timer);
@@ -656,15 +623,15 @@ console.log("Mujjkkir update ho gya hai x value");
 
 				return _RS.api(res, false, 'Game Ended', {}, startTime);
 			}
-		console.log("handleWithdrawRequest4")
-			// await Wallet.findOneAndUpdate({
-			// 	userId: bet.user_id
-			//   }, {
-			// 	$inc: {
-			// 		balance: Number(requested)
-			// 	}
-			//   });
-			bet.withdraw_amount = requested;
+			const walletupdate = await Wallet.updateOne({
+				userId: bet.user_id
+			  },{
+				$inc: {
+					balance: Number(requestedAmount)
+				}
+			  });
+			  console.log("walletupdatewalletupdate=====>>>>>",walletupdate)
+			bet.withdraw_amount = requestedAmount;
 			bet.withdraw_at = Date.now();
 			bet.status = BetStatus.PLACED;
 			await bet.save();
@@ -677,6 +644,7 @@ console.log("Mujjkkir update ho gya hai x value");
 	}
 
 	static async totalBet(req,res,next) {
+		
 		const startTime = new Date().getTime();
 		try{
 			let bet=await Bet.aggregate([
@@ -719,919 +687,3 @@ console.log("Mujjkkir update ho gya hai x value");
 
 	}
 }
-
-// import { response } from 'express';
-// import Game from '../../models/Game';
-// import _RS from '../../helpers/ResponseHelper';
-// import Bet, { BetStatus } from '../../models/Bet';
-// import OngoingGame from '../../models/OngoingGame';
-// import Wallet from '../../models/WalletSettings';
-// import Helper from '../../helpers/Helper';
-// import Transaction, {
-// 	Status_Types,
-// 	Transaction_Modes,
-// 	Transaction_Types,
-// } from '../../models/TransactionSetting';
-// import AdminSetting from '../../models/AdminSetting';
-
-// export class GameController {
-// 	static async getGamePageData(req, res, next) {
-// 		const startTime = new Date().getTime();
-// 		try {
-// 			const ongoingGame = await OngoingGame.findOne().populate([
-// 				{ path: 'current_game' },
-// 			]);
-
-// 			const gameBets = await Bet.find({
-// 				game_id: ongoingGame?.current_game?._id,
-// 			}).populate([{ path: 'user_id' }]);
-
-// 			const minBetAmount = (await AdminSetting.findOne())?.min_bet;
-
-// 			const userBets = await Bet.find({
-// 				user_id: req.user.id,
-// 				game_id: ongoingGame?.current_game?._id,
-// 			});
-
-// 			const wallet = await Wallet.findOne({ userId: req.user.id });
-
-// 			if (!wallet) {
-// 				const newWallet = await new Wallet({
-// 					userId: req.user.id,
-// 					balance: 0,
-// 				}).save();
-
-// 				return _RS.api(
-// 					res,
-// 					true,
-// 					'Game Data Get Successfully',
-// 					{
-// 						balance: newWallet?.balance,
-// 						ongoingGame,
-// 						bets: gameBets,
-// 						minBetAmount,
-// 						userBets,
-// 					},
-// 					startTime
-// 				);
-// 			}
-
-// 			return _RS.api(
-// 				res,
-// 				true,
-// 				'Game Data Get Successfully',
-// 				{
-// 					balance: wallet?.balance,
-// 					ongoingGame,
-// 					bets: gameBets,
-// 					minBetAmount,
-// 					userBets,
-// 				},
-// 				startTime
-// 			);
-// 		} catch (error) {
-// 			next(error);
-// 		}
-// 	}
-
-// 	static async bet(req, res, next) {
-// 		const startTime = new Date().getTime();
-// 		try {
-// 			const { amount } = req.body;
-// 			const wallet = await Wallet.findOne({ userId: req.user.id });
-// 			const walletTransactionData = {
-// 				payee: req.user.id,
-// 				receiver: Helper?.admin?._id, //adminId,
-// 				transaction_id: Helper.generateAlphaString(6),
-// 				amount: amount,
-// 				transaction_mode: Transaction_Modes.USER,
-// 				transaction_type: Transaction_Types.DEBIT,
-// 				status: Status_Types.SUCCESS,
-// 				wallet_id: wallet._id,
-// 			};
-
-// 			const transaction = await new Transaction(walletTransactionData).save();
-// console.log("transaction======",transaction);
-// 			if (transaction) {
-// 				wallet.balance = +wallet.balance - +amount;
-// 				wallet.save();
-// 			}
-
-// 			const ongoingGame = await OngoingGame.findOne();
-// 			const nextGame = await Game.findById(ongoingGame?.next_game);
-
-// 			// generate bet
-// 			const betData = {
-// 				game_id: nextGame?._id, //next game id
-// 				user_id: req.user.id,
-// 				status: BetStatus.PENDING,
-// 				deposit_amount: amount,
-// 			};
-
-// 			const bet = await new Bet(betData).save();
-// 			console.log("bet=====",bet);
-// 			// update game total deposit
-// 			if (bet) {
-// 				const newAmount: number = +nextGame?.total_deposit + +amount;
-// 				const gameAdminCommissionPercentage = 10;
-// 				// number = (
-// 				// 	await AdminSetting.findOne()
-// 				// ).bet_commission;
-// 				const updatedAdminCommission: number =
-// 					Math.round(
-// 						((gameAdminCommissionPercentage * newAmount) / 100) * 100
-// 					) / 100;
-// 				nextGame.total_deposit = newAmount;
-// 				nextGame.commission_amount = updatedAdminCommission;
-
-// 				await nextGame.save();
-// 				console.log("bet===",bet);
-// 			} else {
-// 				wallet.balance = +wallet.balance + +amount;
-// 				transaction.status = Status_Types.FAILED;
-// 				await transaction.save();
-// 				await wallet.save();
-// 				return _RS.api(
-// 					res,
-// 					false,
-// 					'Transaction Failed, Money is re added to your wallet',
-// 					{},
-// 					startTime
-// 				);
-// 			}
-
-// 			return _RS.api(
-// 				res,
-// 				true,
-// 				'Bet Successfully Submitted',
-// 				{ transaction, wallet },
-// 				startTime
-// 			);
-// 		} catch (error) {
-// 			next(error);
-// 		}
-// 	}
-
-// 	static async getCurrentGameSession(req, res, next) {
-// 		const startTime = new Date().getTime();
-// 		try {
-// 			const activeGame = await Game.findOne({ is_active: true });
-// 			if (!activeGame) {
-// 				return _RS.api(
-// 					res,
-// 					false,
-// 					'No Active Games Found, Please Try Again Later',
-// 					{},
-// 					startTime
-// 				);
-// 			}
-// 			return _RS.api(res, true, 'Game Get Successfully', activeGame, startTime);
-// 		} catch (error) {
-// 			next(error);
-// 		}
-// 	}
-
-// 	// end game and generate new game.
-// 	static async endGame() {
-// 		try {
-// 			const ongoingGame = await OngoingGame.findOne();
-// 			const nextGame = await Game.findById(ongoingGame?.next_game);
-
-// 			// change all current bet status to completed (only players who have't withdrawed money, as for else it was already updated to placed)
-// 			const updateBetStatus = await Bet.updateMany(
-// 				{
-// 					game_id: ongoingGame.current_game,
-// 					status: BetStatus.ACTIVE,
-// 				},
-// 				{
-// 					status: BetStatus.COMPLETED,
-// 				}
-// 			);
-
-// 			// generate new game
-// 			const newGameData = {
-// 				// session: 'fdhjhgjkhdfkg',
-// 				total_deposit: 0,
-// 				commission_amount: 0,
-// 				base_amount: (
-// 					await Bet.findOne({ game_id: nextGame._id })
-// 						.sort({ deposit_amount: -1 })
-// 						.exec()
-// 				)?.deposit_amount,
-// 				fall_rate: 0,
-// 				earning: 0,
-// 				start_time: Date.now(),
-// 			};
-
-// 			const newNextGame = await new Game(newGameData).save();
-
-// 			// update bet statuses for new current game
-// 			const newCurrentBets = await Bet.updateMany(
-// 				{
-// 					status: BetStatus.PENDING,
-// 					game_id: ongoingGame.next_game,
-// 				},
-// 				{
-// 					status: BetStatus.ACTIVE,
-// 				}
-// 			);
-
-// 			ongoingGame.current_game = ongoingGame.next_game;
-// 			ongoingGame.next_game = newNextGame._id;
-
-// 			const maxBet = await Bet.findOne({ game_id: nextGame._id })
-// 				.sort({ deposit_amount: -1 })
-// 				.exec();
-
-// 			console.log(maxBet, '---------');
-
-// 			nextGame.start_time = Date.now();
-// 			nextGame.base_amount = maxBet?.deposit_amount;
-// 			await nextGame.save();
-
-// 			// await ongoingGame.save();
-
-// 			return true;
-// 		} catch (error) {
-// 			console.log(error);
-// 			return false;
-// 		}
-// 	}
-
-// 	static getUp = ({
-// 		gameTotal,
-// 		remaining,
-// 		baseAmount,
-// 		timeDiffInMs,
-// 	}): number => {
-// 		console.log(
-// 			remaining,
-// 			baseAmount,
-// 			timeDiffInMs,
-// 			'------------------------------ remaining baseAmount timeDiffInMs 💥'
-// 		);
-// 		const range: number = ((+remaining - +baseAmount) * timeDiffInMs) / 10000; //speed
-// 		console.log(range, '------------------------------ range 💥 ');
-// 		const up: number = parseFloat(
-// 			((baseAmount + range) / baseAmount).toFixed(2)
-// 		);
-// 		console.log(up, '------------------------------ up 💥 ');
-
-// 		return up;
-// 	};
-
-// 	static async handleGame(): Promise<{
-// 		message: string;
-// 		status: boolean | number;
-// 		data: any;
-// 		error: any;
-// 	}> {
-// 		try {
-// 			const ongoingGame = await OngoingGame.findOne();
-// 			console.log(
-// 				ongoingGame,
-// 				'------------------------------ ongoingGame 💥 '
-// 			);
-
-// 			const currentGame = await Game.findById(ongoingGame?.current_game);
-// 			console.log(
-// 				currentGame,
-// 				'------------------------------ currentGame 💥 '
-// 			);
-
-// 			const allBets = await Bet.find({
-// 				game_id: currentGame?._id,
-// 			}).populate([{ path: 'user_id' }]);
-
-// 			const baseAmount: number = currentGame?.base_amount;
-// 			console.log(baseAmount, '------------------------------ baseAmount 💥 ');
-
-// 			const gameTotal: number =
-// 				Math.round(
-// 					(currentGame?.total_deposit - currentGame?.commission_amount) * 100
-// 				) / 100;
-
-// 			console.log(gameTotal, '------------------------------ gameTotal 💥 ');
-
-// 			const result = await Bet.aggregate([
-// 				{
-// 					$match: {
-// 						withdraw_amount: { $ne: null },
-// 						game_id: currentGame._id,
-// 					},
-// 				},
-// 				{
-// 					$group: {
-// 						_id: null,
-// 						totalWithdrawAmount: { $sum: '$withdraw_amount' },
-// 					},
-// 				},
-// 			]);
-
-// 			console.log(result, '------------------------------ result 💥 ');
-
-// 			const totalWithdrawAmount: number =
-// 				result.length > 0 ? result[0].totalWithdrawAmount : 0;
-
-// 			console.log(
-// 				totalWithdrawAmount,
-// 				'------------------------------ totalWithdrawAmount 💥 '
-// 			);
-
-// 			const remaining = +gameTotal - +totalWithdrawAmount;
-
-// 			console.log(remaining, '------------------------------ remaining 💥 ');
-
-// 			const timeDiffInMs: number = Date.now() - currentGame?.start_time;
-
-// 			console.log(
-// 				timeDiffInMs,
-// 				'------------------------------ timeDiffInMs 💥 '
-// 			);
-
-// 			if (!timeDiffInMs || (!!timeDiffInMs && timeDiffInMs > 10 * 1000)) {
-// 				const gameEnd = await GameController.endGame();
-// 				console.log(gameEnd, '------------------------------ gameEnd 💥 ');
-
-// 				if (!gameEnd) {
-// 					return {
-// 						status: false,
-// 						message: 'Request Failed',
-// 						data: {},
-// 						error: null,
-// 					};
-// 				}
-// 			}
-
-// 			if (!(gameTotal && remaining && baseAmount)) {
-// 				const gameEnd = await GameController.endGame();
-// 				console.log(gameEnd, '344------------------------------ gameEnd 💥 ');
-
-// 				if (!gameEnd) {
-// 					return {
-// 						status: false,
-// 						message: 'Request Failed',
-// 						data: {},
-// 						error: null,
-// 					};
-// 				}
-// 			} else {
-// 				const X = GameController.getUp({
-// 					gameTotal,
-// 					remaining,
-// 					baseAmount,
-// 					timeDiffInMs,
-// 				});
-// 				console.log(X, '------------------------------ X 💥 ');
-
-// 				return {
-// 					status: true,
-// 					message: 'Up Get Successfully',
-// 					data: {
-// 						X,
-// 						allBets,
-// 						is_game_end: false,
-// 					},
-// 					error: null,
-// 				};
-// 			}
-// 			return {
-// 				status: true,
-// 				message: 'Game Ended',
-// 				data: { is_game_end: true, allBets },
-// 				error: null,
-// 			};
-// 		} catch (error) {
-// 			return {
-// 				status: false,
-// 				message: 'ERROR',
-// 				data: {},
-// 				error: error,
-// 			};
-// 		}
-// 	}
-
-// 	static async handleWithdrawRequest(req, res, next) {
-// 		const startTime = new Date().getTime();
-// 		try {
-// 			const ongoingGame = await OngoingGame.findOne();
-// 			const currentGame = await Game.findById(ongoingGame?.current_game);
-
-// 			const betId = req.params.id;
-// 			const bet = await Bet.findById(betId);
-// 			const { requested } = req.body;
-
-// 			const baseAmount: number = currentGame?.base_amount;
-// 			const gameTotal: number =
-// 				Math.round(
-// 					(currentGame?.total_deposit - currentGame?.commission_amount) * 100
-// 				) / 100;
-
-// 			const result = await Bet.aggregate([
-// 				{
-// 					$match: {
-// 						withdraw_amount: { $ne: null },
-// 						game_id: currentGame._id,
-// 					},
-// 				},
-// 				{
-// 					$group: {
-// 						_id: null,
-// 						totalWithdrawAmount: { $sum: '$withdraw_amount' },
-// 					},
-// 				},
-// 			]);
-
-// 			const totalWithdrawAmount: number =
-// 				result.length > 0 ? result[0].totalWithdrawAmount : 0;
-
-// 			const remaining: number = +gameTotal - +totalWithdrawAmount;
-
-// 			if (requested < remaining) {
-// 				const gameEnd = await GameController.endGame();
-// 				if (!gameEnd) {
-// 					return _RS.api(res, false, 'Request Failed', {}, startTime);
-// 				}
-// 				bet.status = BetStatus.COMPLETED;
-// 				await bet.save();
-// 				return _RS.api(res, false, 'Game Ended', {}, startTime);
-// 			}
-
-// 			bet.withdraw_amount = requested;
-// 			bet.withdraw_at = Date.now();
-// 			bet.status = BetStatus.PLACED;
-// 			await bet.save();
-
-// 			return _RS.api(res, true, 'Bet Win', bet, startTime);
-// 		} catch (error) {
-// 			next(error);
-// 		}
-// 	}
-// }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// // import { response } from 'express';
-// // import Game from '../../models/Game';
-// // import _RS from '../../helpers/ResponseHelper';
-// // import Bet, { BetStatus } from '../../models/Bet';
-// // import OngoingGame from '../../models/OngoingGame';
-// // import Wallet from '../../models/WalletSettings';
-// // import Helper from '../../helpers/Helper';
-// // import Transaction, {
-// // 	Status_Types,
-// // 	Transaction_Modes,
-// // 	Transaction_Types,
-// // } from '../../models/TransactionSetting';
-// // import AdminSetting from '../../models/AdminSetting';
-
-// // export class GameController {
-// // 	static async getGamePageData(req, res, next) {
-// // 		const startTime = new Date().getTime();
-// // 		try {
-// // 			const ongoingGame = await OngoingGame.findOne().populate([
-// // 				{ path: 'current_game' },
-// // 			]);
-
-// // 			const gameBets = await Bet.find({
-// // 				game_id: ongoingGame?.current_game?._id,
-// // 			}).populate([{ path: 'user_id' }]);
-
-// // 			const minBetAmount = (await AdminSetting.findOne())?.min_bet;
-
-// // 			const userBets = await Bet.find({
-// // 				user_id: req.user.id,
-// // 				game_id: ongoingGame?.current_game?._id,
-// // 			});
-
-// // 			const wallet = await Wallet.findOne({ userId: req.user.id });
-
-// // 			if (!wallet) {
-// // 				const newWallet = await new Wallet({
-// // 					userId: req.user.id,
-// // 					balance: 0,
-// // 				}).save();
-
-// // 				return _RS.api(
-// // 					res,
-// // 					true,
-// // 					'Game Data Get Successfully',
-// // 					{
-// // 						balance: newWallet?.balance,
-// // 						ongoingGame,
-// // 						bets: gameBets,
-// // 						minBetAmount,
-// // 						userBets,
-// // 					},
-// // 					startTime
-// // 				);
-// // 			}
-
-// // 			return _RS.api(
-// // 				res,
-// // 				true,
-// // 				'Game Data Get Successfully',
-// // 				{
-// // 					balance: wallet?.balance,
-// // 					ongoingGame,
-// // 					bets: gameBets,
-// // 					minBetAmount,
-// // 					userBets,
-// // 				},
-// // 				startTime
-// // 			);
-// // 		} catch (error) {
-// // 			next(error);
-// // 		}
-// // 	}
-
-// // 	static async bet(req, res, next) {
-// // 		const startTime = new Date().getTime();
-// // 		try {
-// // 			const { amount } = req.body;
-// // 			const wallet = await Wallet.findOne({ userId: req.user.id });
-// // 			const walletTransactionData = {
-// // 				payee: req.user.id,
-// // 				receiver: Helper?.admin?._id, //adminId,
-// // 				transaction_id: Helper.generateAlphaString(6),
-// // 				amount: amount,
-// // 				transaction_mode: Transaction_Modes.USER,
-// // 				transaction_type: Transaction_Types.DEBIT,
-// // 				status: Status_Types.SUCCESS,
-// // 				wallet_id: wallet._id,
-// // 			};
-
-// // 			const transaction = await new Transaction(walletTransactionData).save();
-
-// // 			if (transaction) {
-// // 				wallet.balance = +wallet.balance - +amount;
-// // 				wallet.save();
-// // 			}
-
-// // 			const ongoingGame = await OngoingGame.findOne();
-// // 			const nextGame = await Game.findById(ongoingGame?.next_game);
-
-// // 			// generate bet
-// // 			const betData = {
-// // 				game_id: nextGame?._id, //next game id
-// // 				user_id: req.user.id,
-// // 				status: BetStatus.PENDING,
-// // 				deposit_amount: amount,
-// // 			};
-
-// // 			const bet = await new Bet(betData).save();
-
-// // 			// update game total deposit
-// // 			if (bet) {
-// // 				const newAmount: number = +nextGame?.total_deposit + +amount;
-// // 				const gameAdminCommissionPercentage: number = (
-// // 					await AdminSetting.findOne()
-// // 				).bet_commission;
-// // 				const updatedAdminCommission: number =
-// // 					Math.round(
-// // 						((gameAdminCommissionPercentage * newAmount) / 100) * 100
-// // 					) / 100;
-// // 				nextGame.total_deposit = newAmount;
-// // 				nextGame.commission_amount = updatedAdminCommission;
-
-// // 				await nextGame.save();
-// // 			} else {
-// // 				wallet.balance = +wallet.balance + +amount;
-// // 				transaction.status = Status_Types.FAILED;
-// // 				await transaction.save();
-// // 				await wallet.save();
-// // 				return _RS.api(
-// // 					res,
-// // 					false,
-// // 					'Transaction Failed, Money is re added to your wallet',
-// // 					{},
-// // 					startTime
-// // 				);
-// // 			}
-
-// // 			return _RS.api(
-// // 				res,
-// // 				true,
-// // 				'Deposit Amount Success',
-// // 				{ transaction, wallet },
-// // 				startTime
-// // 			);
-// // 		} catch (error) {
-// // 			next(error);
-// // 		}
-// // 	}
-
-// // 	static async getCurrentGameSession(req, res, next) {
-// // 		const startTime = new Date().getTime();
-// // 		try {
-// // 			const activeGame = await Game.findOne({ is_active: true });
-// // 			if (!activeGame) {
-// // 				return _RS.api(
-// // 					res,
-// // 					false,
-// // 					'No Active Games Found, Please Try Again Later',
-// // 					{},
-// // 					startTime
-// // 				);
-// // 			}
-// // 			return _RS.api(res, true, 'Game Get Successfully', activeGame, startTime);
-// // 		} catch (error) {
-// // 			next(error);
-// // 		}
-// // 	}
-
-// // 	// end game and generate new game.
-// // 	static async endGame() {
-// // 		return true
-// // 		try {
-// // 			const ongoingGame = await OngoingGame.findOne();
-// // 			const nextGame = await Game.findById(ongoingGame?.next_game);
-
-// // 			// change all current bet status to completed (only players who have't withdrawed money, as for else it was already updated to placed)
-// // 			const updateBetStatus = await Bet.updateMany(
-// // 				{
-// // 					game_id: ongoingGame.current_game,
-// // 					status: BetStatus.ACTIVE,
-// // 				},
-// // 				{
-// // 					status: BetStatus.COMPLETED,
-// // 				}
-// // 			);
-
-// // 			// generate new game
-// // 			const newGameData = {
-// // 				// session: 'fdhjhgjkhdfkg',
-// // 				total_deposit: 0,
-// // 				commission_amount: 0,
-// // 				base_amount: (
-// // 					await Bet.findOne({ game_id: nextGame._id })
-// // 						.sort({ deposit_amount: -1 })
-// // 						.exec()
-// // 				)?.deposit_amount,
-// // 				fall_rate: 0,
-// // 				earning: 0,
-// // 				start_time: Date.now(),
-// // 			};
-
-// // 			const newNextGame = await new Game(newGameData).save();
-
-// // 			// update bet statuses for new current game
-// // 			const newCurrentBets = await Bet.updateMany(
-// // 				{
-// // 					status: BetStatus.PENDING,
-// // 					game_id: ongoingGame.next_game,
-// // 				},
-// // 				{
-// // 					status: BetStatus.ACTIVE,
-// // 				}
-// // 			);
-
-// // 			ongoingGame.current_game = ongoingGame.next_game;
-// // 			ongoingGame.next_game = newNextGame._id;
-
-// // 			const maxBet = await Bet.findOne({ game_id: nextGame._id })
-// // 				.sort({ deposit_amount: -1 })
-// // 				.exec();
-
-// // 			console.log(maxBet, '---------');
-
-// // 			nextGame.start_time = Date.now();
-// // 			nextGame.base_amount = maxBet?.deposit_amount;
-// // 			await nextGame.save();
-
-// // 			await ongoingGame.save();
-
-// // 			return true;
-// // 		} catch (error) {
-// // 			console.log(error);
-// // 			return false;
-// // 		}
-// // 	}
-
-// // 	static getUp = ({
-// // 		gameTotal,
-// // 		remaining,
-// // 		baseAmount,
-// // 		timeDiffInMs,
-// // 	}): number => {
-// // 		console.log(
-// // 			remaining,
-// // 			baseAmount,
-// // 			timeDiffInMs,
-// // 			'------------------------------ remaining baseAmount timeDiffInMs 💥'
-// // 		);
-
-// // 		const range: number = ((+remaining - +baseAmount) * timeDiffInMs) / 10000; //speed
-// // 		console.log(range, '------------------------------ range 💥 ');
-// // 		const up: number = parseFloat(
-// // 			((baseAmount + range) / baseAmount).toFixed(2)
-// // 		);
-// // 		console.log(up, '------------------------------ up 💥 ');
-
-// // 		return up;
-// // 	};
-
-// // 	static async handleGame(): Promise<{
-// // 		message: string;
-// // 		status: boolean | number;
-// // 		data: any;
-// // 		error: any;
-// // 	}> {
-// // 		try {
-// // 			const ongoingGame = await OngoingGame.findOne();
-// // 			// console.log(
-// // 			// 	ongoingGame,
-// // 			// 	'------------------------------ ongoingGame 💥 '
-// // 			// );
-
-// // 			const currentGame = await Game.findById(ongoingGame?.current_game);
-// // 			console.log(
-// // 				currentGame,
-// // 				'------------------------------ currentGame 💥 '
-// // 			);
-
-// // 			const allBets = await Bet.find({
-// // 				game_id: currentGame?._id,
-// // 			}).populate([{ path: 'user_id' }]);
-
-// // 			const baseAmount: number = currentGame?.base_amount;
-// // 			console.log(baseAmount, '------------------------------ baseAmount 💥 ');
-
-// // 			const gameTotal: number =
-// // 				Math.round(
-// // 					(currentGame?.total_deposit - currentGame?.commission_amount) * 100
-// // 				) / 100;
-
-// // 			console.log(gameTotal, '------------------------------ gameTotal 💥 ');
-
-// // 			const result = await Bet.aggregate([
-// // 				{
-// // 					$match: {
-// // 						withdraw_amount: { $ne: null },
-// // 						game_id: currentGame._id,
-// // 					},
-// // 				},
-// // 				{
-// // 					$group: {
-// // 						_id: null,
-// // 						totalWithdrawAmount: { $sum: '$withdraw_amount' },
-// // 					},
-// // 				},
-// // 			]);
-
-// // 			console.log(result, '------------------------------ result 💥 ');
-
-// // 			const totalWithdrawAmount: number =
-// // 				result.length > 0 ? result[0].totalWithdrawAmount : 0;
-
-// // 			console.log(
-// // 				totalWithdrawAmount,
-// // 				'------------------------------ totalWithdrawAmount 💥 '
-// // 			);
-
-// // 			const remaining = +gameTotal - +totalWithdrawAmount;
-
-// // 			console.log(remaining, '------------------------------ remaining 💥 ');
-
-// // 			const timeDiffInMs: number = Date.now() - currentGame?.start_time;
-
-// // 			// console.log(
-// // 			// 	timeDiffInMs,
-// // 			// 	'------------------------------ timeDiffInMs 💥 '
-// // 			// );
-// // 			console.log(gameTotal, remaining, baseAmount,timeDiffInMs, '------------------------------ gameEnd 💥 ');
-
-// // 			if (!timeDiffInMs || (!!timeDiffInMs && timeDiffInMs > 10 * 1000)) {
-// // 				const gameEnd = await GameController.endGame();
-// // 				// const gameEnd = true
-
-// // 				if (!gameEnd) {
-// // 					return {
-// // 						status: false,
-// // 						message: 'Request Failed',
-// // 						data: {},
-// // 						error: null,
-// // 					};
-// // 				}
-// // 			}
-
-// // 			if (!(gameTotal && remaining && baseAmount)) {
-// // 				const gameEnd = await GameController.endGame();
-// // 				// const gameEnd = true
-// // 				// console.log(gameEnd, '344------------------------------ gameEnd 💥 ');
-
-// // 				if (!gameEnd) {
-// // 					return {
-// // 						status: false,
-// // 						message: 'Request Failed',
-// // 						data: {},
-// // 						error: null,
-// // 					};
-// // 				}
-// // 			} else {
-// // 				const X = GameController.getUp({
-// // 					gameTotal,
-// // 					remaining,
-// // 					baseAmount,
-// // 					timeDiffInMs,
-// // 				});
-// // 				console.log(X, '------------------------------ Value of X 💥 ');
-
-// // 				return {
-// // 					status: true,
-// // 					message: 'Up Get Successfully',
-// // 					data: {
-// // 						X,
-// // 						allBets,
-// // 						is_game_end: false,
-// // 					},
-// // 					error: null,
-// // 				};
-// // 			}
-// // 			return {
-// // 				status: true,
-// // 				message: 'Game Endedsss',
-// // 				data: { is_game_end: true, allBets },
-// // 				error: null,
-// // 			};
-// // 		} catch (error) {
-// // 			return {
-// // 				status: false,
-// // 				message: 'ERROR',
-// // 				data: {},
-// // 				error: error,
-// // 			};
-// // 		}
-// // 	}
-
-// // 	static async handleWithdrawRequest(req, res, next) {
-// // 		const startTime = new Date().getTime();
-// // 		try {
-// // 			const ongoingGame = await OngoingGame.findOne();
-// // 			const currentGame = await Game.findById(ongoingGame?.current_game);
-
-// // 			const betId = req.params.id;
-// // 			const bet = await Bet.findById(betId);
-// // 			const { requested } = req.body;
-
-// // 			const baseAmount: number = currentGame?.base_amount;
-// // 			const gameTotal: number =
-// // 				Math.round(
-// // 					(currentGame?.total_deposit - currentGame?.commission_amount) * 100
-// // 				) / 100;
-
-// // 			const result = await Bet.aggregate([
-// // 				{
-// // 					$match: {
-// // 						withdraw_amount: { $ne: null },
-// // 						game_id: currentGame._id,
-// // 					},
-// // 				},
-// // 				{
-// // 					$group: {
-// // 						_id: null,
-// // 						totalWithdrawAmount: { $sum: '$withdraw_amount' },
-// // 					},
-// // 				},
-// // 			]);
-
-// // 			const totalWithdrawAmount: number =
-// // 				result.length > 0 ? result[0].totalWithdrawAmount : 0;
-
-// // 			const remaining: number = +gameTotal - +totalWithdrawAmount;
-
-// // 			if (requested < remaining) {
-// // 				const gameEnd = await GameController.endGame();
-// // 				if (!gameEnd) {
-// // 					return _RS.api(res, false, 'Request Failed', {}, startTime);
-// // 				}
-// // 				bet.status = BetStatus.COMPLETED;
-// // 				await bet.save();
-// // 				return _RS.api(res, false, 'Game Ended', {}, startTime);
-// // 			}
-
-// // 			bet.withdraw_amount = requested;
-// // 			bet.withdraw_at = Date.now();
-// // 			bet.status = BetStatus.PLACED;
-// // 			await bet.save();
-
-// // 			return _RS.api(res, true, 'Bet Win', bet, startTime);
-// // 		} catch (error) {
-// // 			next(error);
-// // 		}
-// // 	}
-// // }

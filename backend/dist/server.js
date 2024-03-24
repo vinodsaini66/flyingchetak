@@ -19,9 +19,27 @@ const Env_1 = require("./environments/Env");
 const Routes_1 = require("./routes/Routes");
 const path = require("path");
 const GameController_1 = require("./controllers/App/GameController");
+const cron = require("node-cron");
+let gamedata = {};
+// Define your cron job
+cron.schedule('00 18 * * *', () => __awaiter(void 0, void 0, void 0, function* () {
+    const xValueGet = () => __awaiter(void 0, void 0, void 0, function* () {
+        const gameInterval = setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
+            const gameData = yield GameController_1.GameController.getXValue();
+            if (gameData.data.timer == 1) {
+                clearInterval(gameInterval);
+                setTimeout(() => __awaiter(void 0, void 0, void 0, function* () { return yield xValueGet(); }), 10000);
+            }
+            gamedata = gameData;
+            // console.log("cron job data",gamedata,gameData)
+            return gamedata;
+        }), 1000);
+    });
+    yield xValueGet();
+}));
 const app = express();
 const cookieParser = require('cookie-parser');
-const SEND_INTERVAL = 500;
+const SEND_INTERVAL = 100;
 class Server {
     constructor() {
         this.app = express();
@@ -92,48 +110,23 @@ class Server {
                 'Content-Type': 'text/event-stream',
             });
             const sseId = new Date().toDateString();
-            let funCall = 1;
-            const xValueGet = () => __awaiter(this, void 0, void 0, function* () {
-                funCall = 1;
-                const gameInterval = setInterval(() => __awaiter(this, void 0, void 0, function* () {
-                    const gameData = yield GameController_1.GameController.getXValue();
-                    if (gameData.data.timer.toFixed(2) == 0.00 && funCall == 1) {
-                        funCall += 1;
-                        clearInterval(gameInterval);
-                        this.writeEvent(res, sseId, JSON.stringify({
-                            message: gameData.message,
-                            status: gameData.status,
-                            data: gameData.data
-                        }));
-                        setTimeout(() => xValueGet(), 10000);
-                    }
-                    else {
-                        this.writeEvent(res, sseId, JSON.stringify({
-                            message: gameData.message,
-                            status: gameData.status,
-                            data: gameData.data
-                        }));
-                    }
-                }), SEND_INTERVAL);
-            });
-            xValueGet();
             const handleGameInterval = () => __awaiter(this, void 0, void 0, function* () {
-                var _a;
+                var _a, _b;
                 let timeStart = 0;
                 //   const gameInterval = setInterval(async () => {
                 // console.log("IntervalCall");
                 const gameData = yield GameController_1.GameController.handleGame();
-                if (!!((_a = gameData === null || gameData === void 0 ? void 0 : gameData.data) === null || _a === void 0 ? void 0 : _a.is_game_end)) {
-                    console.log("gameEnd=====APICAll");
+                console.log("gameEnd=====APICAll", (_a = gameData === null || gameData === void 0 ? void 0 : gameData.data) === null || _a === void 0 ? void 0 : _a.is_game_end);
+                if (!!((_b = gameData === null || gameData === void 0 ? void 0 : gameData.data) === null || _b === void 0 ? void 0 : _b.is_game_end)) {
                     //   clearInterval(gameInterval);
                     this.writeEvent(res, sseId, JSON.stringify({
                         message: gameData.message,
                         status: gameData.status,
                         data: gameData.data,
                         startTime: startTime,
-                        //   timer:0.00,
+                        timer: gamedata,
                     }));
-                    setTimeout(() => handleGameInterval(), 10000);
+                    setTimeout(() => __awaiter(this, void 0, void 0, function* () { return yield handleGameInterval(); }), 1000);
                 }
                 if (!!gameData.error) {
                     this.handleErrors();
@@ -144,11 +137,12 @@ class Server {
                     status: gameData.status,
                     data: gameData.data,
                     startTime: startTime,
+                    timer: gamedata
                 }));
-                setTimeout(() => handleGameInterval(), 7000);
-                //   }, 100000);
+                setTimeout(() => __awaiter(this, void 0, void 0, function* () { return yield handleGameInterval(); }), 1000);
+                //   }, 1000);
             }); // Bind the function to the current context
-            handleGameInterval();
+            yield handleGameInterval();
         });
     }
     writeEvent(res, sseId, data) {

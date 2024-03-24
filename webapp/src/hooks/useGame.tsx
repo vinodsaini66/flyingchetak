@@ -33,6 +33,7 @@ const useGame = () => {
 			url: apiPath.gameInitialData,
 			method: 'GET',
 			onSuccess: ({ data, status }) => {
+				console.log("balancebalance",data)
 				if (status) {
 					setBalance(data?.balance);
 					setBets(data?.bets);
@@ -99,9 +100,10 @@ const useGame = () => {
 			ShowToast(`Min Bet should be of ${minBetAmount}`, Severty.ERROR);
 		} else {
 			let payload: any = {
-				amount: amount*x,
+				amount: amount,
 				boxType:type,
-				betType:betType
+				betType:betType,
+				xValue:x
 			};
 			request({
 				url: apiPath.gameAutoDeposite,
@@ -127,10 +129,11 @@ const useGame = () => {
 		betId: string;
 		amount: number;
 	}) => {
+		let requestedAmount = amount
 		request({
 			url: apiPath.gameWithdraw + '/' + betId,
 			method: 'POST',
-			data: { amount },
+			data: { requestedAmount },
 			onSuccess: ({ data, status }) => {
 				if (status) {
 					fetchData();
@@ -151,20 +154,28 @@ const useGame = () => {
 			const data = JSON.parse(e.data);
 			if (data?.status) {
 				setIsLoading(false)
-				if (data?.data?.timer>-1) {
-					let local:any = localStorage.getItem("betConfig")
-					let local1  =JSON.parse(local)
-					if(local1){
-						handleDeposit(local1.amount,local1.type,local1.betType)
-						localStorage.removeItem("betConfig")
-					}
+				if (data?.data?.timer>1) {
 					setX(data.data.timer);
 					setIsGameEnd(false);
 				}
 				else {
+					let local:any = localStorage.getItem("FirstBoxFutureBet")
+					let local1  =JSON.parse(local)
+					let local2:any = localStorage.getItem("SecondBoxFutureBet")
+					let local3  =JSON.parse(local2)
+					if(local1){
+						handleDeposit(local1.amount,local1.type,local1.betType)
+						localStorage.removeItem("FirstBoxFutureBet")
+					}
+					if(local3){
+						handleDeposit(local1.amount,local1.type,local1.betType)
+						localStorage.removeItem("SecondBoxFutureBet")
+					}
 					setIsGameEnd(true);
+					// fetchData()
 					// source.close();
 				}
+				
 				if (data?.data?.allBets) {
 					setBets(data.data.allBets);
 				}

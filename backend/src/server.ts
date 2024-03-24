@@ -9,6 +9,29 @@ import { NextFunction } from 'express';
 import path = require('path');
 import { ReqInterface, ResInterface } from './interfaces/RequestInterface';
 import { GameController } from './controllers/App/GameController';
+import * as cron from 'node-cron';
+let gamedata = {}
+// Define your cron job
+cron.schedule('00 18 * * *', async() => {
+	const xValueGet = async () => {
+		const gameInterval = setInterval(async () => {
+			const gameData: {
+				message: string;
+				status: boolean | number;
+				data: any;
+				error: any;
+			} = await GameController.getXValue();
+			if(gameData.data.timer== 1 ){
+				clearInterval(gameInterval);
+				setTimeout(async() =>await xValueGet(), 10000);
+			}
+			gamedata = gameData
+			// console.log("cron job data",gamedata,gameData)
+			return gamedata
+		},1000);
+	}
+	await xValueGet()
+  });
 
 
 const app = express();
@@ -103,44 +126,6 @@ export class Server {
 		  'Content-Type': 'text/event-stream',
 		});
 		const sseId = new Date().toDateString();
-		let funCall = 1 
-		const xValueGet = async () => {
-			funCall = 1
-			const gameInterval = setInterval(async () => {
-				const gameData: {
-					message: string;
-					status: boolean | number;
-					data: any;
-					error: any;
-				} = await GameController.getXValue();
-				if(gameData.data.timer.toFixed(2) == 0.00 && funCall == 1){
-					funCall += 1
-					clearInterval(gameInterval);
-					this.writeEvent(
-						res,
-						sseId,
-						JSON.stringify({
-						message: gameData.message,
-						status: gameData.status,
-						data: gameData.data
-						})
-					);
-					setTimeout(() => xValueGet(), 10000);
-				}
-				else{
-					this.writeEvent(
-						res,
-						sseId,
-						JSON.stringify({
-						message: gameData.message,
-						status: gameData.status,
-						data: gameData.data
-						})
-					);
-				}
-			},SEND_INTERVAL);
-		}
-		xValueGet();
 		const handleGameInterval = async () => {
 			let timeStart = 0;
 		//   const gameInterval = setInterval(async () => {
@@ -151,8 +136,8 @@ export class Server {
 			  data: any;
 			  error: any;
 			} = await GameController.handleGame();
+			console.log("gameEnd=====APICAll",gameData?.data?.is_game_end);
 			if (!!gameData?.data?.is_game_end) {
-			  console.log("gameEnd=====APICAll");
 			//   clearInterval(gameInterval);
 			  this.writeEvent(
 				res,
@@ -162,10 +147,10 @@ export class Server {
 				  status: gameData.status,
 				  data: gameData.data,
 				  startTime: startTime,
-				//   timer:0.00,
+				  timer:gamedata,
 				})
 			  );
-			  setTimeout(() => handleGameInterval(), 10000);
+			  setTimeout(async() => await handleGameInterval(), 1000);
 			}
 	  
 			if (!!gameData.error) {
@@ -181,13 +166,14 @@ export class Server {
 				status: gameData.status,
 				data: gameData.data,
 				startTime: startTime,
+				timer:gamedata
 			  })
 			);
-			setTimeout(() => handleGameInterval(), 7000);
-		//   }, 100000);
+			setTimeout(async() => await handleGameInterval(), 1000);
+		//   }, 1000);
 		} // Bind the function to the current context
 	  
-		handleGameInterval();
+		await handleGameInterval();
 	}
 	  
 	  
