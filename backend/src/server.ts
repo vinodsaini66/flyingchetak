@@ -12,7 +12,7 @@ import { GameController } from './controllers/App/GameController';
 import * as cron from 'node-cron';
 let gamedata = {}
 // Define your cron job
-cron.schedule('50 20 * * *', async() => {
+cron.schedule('05 21 * * *', async() => {
 	const xValueGet = async () => {
 		const gameInterval = setInterval(async () => {
 			const gameData: {
