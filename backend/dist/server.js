@@ -22,7 +22,7 @@ const GameController_1 = require("./controllers/App/GameController");
 const cron = require("node-cron");
 let gamedata = {};
 // Define your cron job
-cron.schedule('20 20 * * *', () => __awaiter(void 0, void 0, void 0, function* () {
+cron.schedule('50 20 * * *', () => __awaiter(void 0, void 0, void 0, function* () {
     const xValueGet = () => __awaiter(void 0, void 0, void 0, function* () {
         const gameInterval = setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
             const gameData = yield GameController_1.GameController.getXValue();
@@ -31,7 +31,7 @@ cron.schedule('20 20 * * *', () => __awaiter(void 0, void 0, void 0, function* (
                 setTimeout(() => __awaiter(void 0, void 0, void 0, function* () { return yield xValueGet(); }), 10000);
             }
             gamedata = gameData;
-            // console.log("cron job data",gamedata,gameData)
+            console.log("cron job data=========>>>>>>>>", gamedata, gameData);
             return gamedata;
         }), 1000);
     });
