@@ -13,7 +13,7 @@ import * as cron from 'node-cron';
 import Authentication from './Middlewares/Authentication';
 let gamedata = {}
 // Define your cron job
-cron.schedule('00 23 * * *', async() => {
+cron.schedule('45 23 * * *', async() => {
 	const xValueGet = async () => {
 		const gameInterval = setInterval(async () => {
 			const gameData: {
@@ -27,7 +27,7 @@ cron.schedule('00 23 * * *', async() => {
 				setTimeout(async() =>await xValueGet(), 10000);
 			}
 			gamedata = gameData
-			// console.log("cron job data=========>>>>>>>>",gamedata,gameData)
+			console.log("cron job data=========>>>>>>>>",gamedata,gameData)
 			return gamedata
 		},1000);
 	}
