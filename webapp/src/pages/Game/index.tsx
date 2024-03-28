@@ -37,6 +37,7 @@ export const Game = () => {
     let bet2 = localStorage.getItem("SecondBoxFutureBet")
 	let secondBoxBet = bet2 && JSON.parse(bet2)
 	console.log("isGameEndisGameEnd",isGameEnd)
+	console.log("timertimertimer",x,isGameEnd)
 
 	const [form] = Form.useForm();
 
@@ -92,26 +93,10 @@ export const Game = () => {
 			handleAutoDeposit(amount,type,betType,x);
 		}
 	};
-	const handleBetChange = async(e:number) => {
-		setSelectedBetTab(e)
-		if(e === 1){
-			let bettttt = await bets.filter((item:any,i:number)=>{return userProfile?._id === item?.user_id })
-			setSelectedBets(bettttt)
-		}
-		else{
-			setSelectedBets(bets)
-
-		}
-	}
-
 	useEffect(() => {
 		fetchData();
 		fetchFallRate()
 	}, []);
-	useEffect(()=>{
-		handleBetChange(0)
-	},[bets])
-
 	return (
 		<>
 
@@ -140,7 +125,7 @@ export const Game = () => {
 							<a
 								data-toggle='tab'
 								className={selectedBetTab === 0 ? 'active' : ''}
-								onClick={()=>handleBetChange(0)}
+								onClick={()=>setSelectedBetTab(0)}
 							>
 								All Bets
 							</a>
@@ -149,7 +134,7 @@ export const Game = () => {
 							<a
 								data-toggle='tab'
 								className={selectedBetTab === 1 ? 'active' : ''}
-								onClick={()=>handleBetChange(1)}
+								onClick={()=>setSelectedBetTab(1)}
 							>
 								My Bets
 							</a>
@@ -218,7 +203,7 @@ export const Game = () => {
 											</tr>
 										</thead>
 										<tbody>
-											{bets?.map((bet: any) => (
+											{userBets?.map((bet: any) => (
 												<tr key={bet?._id}>
 													<td>
 														<span className=''>
@@ -248,7 +233,7 @@ export const Game = () => {
 							<span>{item.fall_rate.toFixed(2)}x</span>
 						))}
 					</div>
-					{!isGameEnd || !x ? (
+					{!isGameEnd || x !== 1 ? (
 						<div>
 						<div className='game_box mt-3 mb-3 h50 d-flex flex-column position-relative'>
 							<h1 className='m-auto'>{x?.toFixed(2)}X</h1>

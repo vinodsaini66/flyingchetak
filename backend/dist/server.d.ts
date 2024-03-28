@@ -7,7 +7,7 @@ export declare class Server {
     enableCors(): void;
     configBodyParser(): void;
     setRoutes(): void;
-    sendEvent(req: express.Request, res: express.Response, next: any): Promise<void>;
+    sendEvent(req: express.Request, res: express.Response, next: any, verify: any): Promise<void>;
     writeEvent(res: express.Response, sseId: string, data: string): void;
     error404Handler(): void;
     handleErrors(): void;

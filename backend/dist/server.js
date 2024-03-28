@@ -20,9 +20,10 @@ const Routes_1 = require("./routes/Routes");
 const path = require("path");
 const GameController_1 = require("./controllers/App/GameController");
 const cron = require("node-cron");
+const Authentication_1 = require("./Middlewares/Authentication");
 let gamedata = {};
 // Define your cron job
-cron.schedule('05 21 * * *', () => __awaiter(void 0, void 0, void 0, function* () {
+cron.schedule('00 23 * * *', () => __awaiter(void 0, void 0, void 0, function* () {
     const xValueGet = () => __awaiter(void 0, void 0, void 0, function* () {
         const gameInterval = setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
             const gameData = yield GameController_1.GameController.getXValue();
@@ -31,7 +32,7 @@ cron.schedule('05 21 * * *', () => __awaiter(void 0, void 0, void 0, function* (
                 setTimeout(() => __awaiter(void 0, void 0, void 0, function* () { return yield xValueGet(); }), 10000);
             }
             gamedata = gameData;
-            console.log("cron job data=========>>>>>>>>", gamedata, gameData);
+            // console.log("cron job data=========>>>>>>>>",gamedata,gameData)
             return gamedata;
         }), 1000);
     });
@@ -88,9 +89,16 @@ class Server {
         app.use('./uploads', express.static(path.join(__dirname, 'uploads')));
         // Add the SSE route
         // this.app.get('/handle-game', GameController.handleGame);
-        this.app.get('/handle-game', (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+        // "/get/by-user-id/:id",
+        this.app.get('/handle-game/:token', (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             if (req.headers.accept === 'text/event-stream') {
-                yield this.sendEvent(req, res, next);
+                let verify = yield Authentication_1.default.eventAuth(req, res, next, req.params);
+                if (verify) {
+                    yield this.sendEvent(req, res, next, verify);
+                }
+                else {
+                    res.json({ message: 'Unauthorized user!' });
+                }
             }
             else {
                 res.json({ message: 'Connection Error' });
@@ -100,7 +108,7 @@ class Server {
         this.app.use('/api', Routes_1.default);
     }
     // await GameController.handleGame();
-    sendEvent(req, res, next) {
+    sendEvent(req, res, next, verify) {
         return __awaiter(this, void 0, void 0, function* () {
             console.log("startGame");
             const startTime = new Date().getTime();
@@ -115,7 +123,7 @@ class Server {
                 let timeStart = 0;
                 //   const gameInterval = setInterval(async () => {
                 // console.log("IntervalCall");
-                const gameData = yield GameController_1.GameController.handleGame();
+                const gameData = yield GameController_1.GameController.handleGame(req, res, verify);
                 console.log("gameEnd=====APICAll", (_a = gameData === null || gameData === void 0 ? void 0 : gameData.data) === null || _a === void 0 ? void 0 : _a.is_game_end);
                 if (!!((_b = gameData === null || gameData === void 0 ? void 0 : gameData.data) === null || _b === void 0 ? void 0 : _b.is_game_end)) {
                     //   clearInterval(gameInterval);

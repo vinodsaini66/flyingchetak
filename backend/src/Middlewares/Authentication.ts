@@ -75,6 +75,50 @@ class Authentication {
 			return next(err);
 		}
 	}
+	static async eventAuth(req,res,next,token) {
+		const startTime = new Date().getTime();
+		try {
+			const decoded: any = await Auth.decodeJwt(token.token);
+			const currentUser = await User.findOne({
+				_id: decoded._id,
+				type: USER_TYPE.customer,
+			});
+			console.log("tokentokentokentoken",decoded)
+
+			if (!currentUser) {
+				return _RS.api(
+					res,
+					false,
+					"User doesn't exists with us",
+					currentUser,
+					startTime
+				);
+			}
+
+			if (!currentUser.is_active) {
+				return _RS.api(
+					res,
+					false,
+					'Account deactivated, Please contact to admin',
+					{},
+					startTime
+				);
+			}
+
+			if (currentUser.is_delete) {
+				return _RS.api(
+					res,
+					false,
+					'This Account has been deleted',
+					{},
+					startTime
+				);
+			}
+			return decoded._id
+		} catch (err) {
+			return next(err);
+		}
+	}
 
 	static async admin(req, res, next) {
 		const startTime = new Date().getTime();

@@ -37,7 +37,7 @@ const useGame = () => {
 				if (status) {
 					setBalance(data?.balance);
 					setBets(data?.bets);
-					setUserBets(data?.userBets);
+					// setUserBets(data?.userBets);
 					setMinBetAmount(data?.minBetAmount);
 					setGameData(data?.ongoingGame);
 				}
@@ -143,7 +143,8 @@ const useGame = () => {
 	};
 
 	useEffect(() => {
-		const source = new EventSource(`${baseURL}handle-game`);
+		const token = localStorage.getItem("token")
+		const source = new EventSource(`${baseURL}handle-game/${token}`);
 
 		source.addEventListener('open', () => {
 			console.log('SSE opened!');
@@ -172,12 +173,16 @@ const useGame = () => {
 						localStorage.removeItem("SecondBoxFutureBet")
 					}
 					setIsGameEnd(true);
+					setX(data.data.timer);
 					// fetchData()
 					// source.close();
 				}
 				
 				if (data?.data?.allBets) {
 					setBets(data.data.allBets);
+				}
+				if(data?.data?.userBets.length>0){
+					setUserBets(data?.data?.userBets)
 				}
 			}
 		});

@@ -13,7 +13,7 @@ export declare class GameController {
         data: any;
         error: any;
     }>;
-    static handleGame(): Promise<{
+    static handleGame(req: any, res: any, userId: any): Promise<{
         message: string;
         status: boolean | number;
         data: any;

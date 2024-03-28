@@ -23,7 +23,7 @@ const { ObjectId } = require('mongodb');
 let timer = 1;
 let gameId = "";
 let secondCount = 0;
-const myArray = [90, 60, 30, 40, 50];
+const myArray = [10, 20, 30];
 const randomIndex = Math.floor(Math.random() * myArray.length);
 let randomItem = myArray[randomIndex];
 class GameController {
@@ -290,7 +290,7 @@ class GameController {
                 nextGame.end_time = Date.now() + (90 * 1000);
                 nextGame.base_amount = (maxBet === null || maxBet === void 0 ? void 0 : maxBet.deposit_amount) ? (maxBet === null || maxBet === void 0 ? void 0 : maxBet.deposit_amount) : 10;
                 yield nextGame.save();
-                // await ongoingGame.save();
+                yield ongoingGame.save();
                 return true;
             }
             catch (error) {
@@ -316,10 +316,10 @@ class GameController {
                 // 	timer = 0;
                 // }
                 // else{
+                console.log('timer and secondcount', randomItem, secondCount);
                 if (randomItem == secondCount) {
-                    console.log('timer and secondcount', randomItem, secondCount);
-                    // ongosetTimeout(() => GameController.endGame(timer), 10000);
-                    const gameEnd = yield GameController.endGame(timer);
+                    setTimeout(() => GameController.endGame(timer), 10000);
+                    // const gameEnd = await GameController.endGame(timer);
                     timer = 1;
                 }
                 else {
@@ -346,14 +346,25 @@ class GameController {
             }
         });
     }
-    static handleGame() {
+    static handleGame(req, res, userId) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const ongoingGame = yield OngoingGame_1.default.findOne();
-                const currentGame = yield Game_1.default.findById(ongoingGame === null || ongoingGame === void 0 ? void 0 : ongoingGame.current_game);
-                const allBets = yield Bet_1.default.find({
-                    game_id: currentGame === null || currentGame === void 0 ? void 0 : currentGame._id,
-                }).populate([{ path: 'user_id' }]);
+                let currentGame;
+                let allBets;
+                if (timer == 1) {
+                    currentGame = yield Game_1.default.findById(ongoingGame === null || ongoingGame === void 0 ? void 0 : ongoingGame.next_game);
+                    allBets = yield Bet_1.default.find({
+                        game_id: currentGame === null || currentGame === void 0 ? void 0 : currentGame._id,
+                    }).populate([{ path: 'user_id' }]);
+                }
+                else {
+                    currentGame = yield Game_1.default.findById(ongoingGame === null || ongoingGame === void 0 ? void 0 : ongoingGame.current_game);
+                    allBets = yield Bet_1.default.find({
+                        game_id: currentGame === null || currentGame === void 0 ? void 0 : currentGame._id,
+                    }).populate([{ path: 'user_id' }]);
+                }
+                let userBets = yield Bet_1.default.find({ user_id: userId }).sort({ created_at: -1 });
                 const baseAmount = currentGame === null || currentGame === void 0 ? void 0 : currentGame.base_amount;
                 const gameTotal = Math.round(((currentGame === null || currentGame === void 0 ? void 0 : currentGame.total_deposit) - (currentGame === null || currentGame === void 0 ? void 0 : currentGame.commission_amount)) * 100) / 100;
                 const result = yield Bet_1.default.aggregate([
@@ -374,7 +385,7 @@ class GameController {
                 const remaining = +gameTotal - +totalWithdrawAmount;
                 const timeDiffInMs = Date.now() - (currentGame === null || currentGame === void 0 ? void 0 : currentGame.start_time);
                 const timeDiffInMs1 = currentGame === null || currentGame === void 0 ? void 0 : currentGame.end_time;
-                console.log("handlegamehandlegame==============>>>>>>>>>>>...", ongoingGame);
+                console.log("handlegamehandlegame==============>>>>>>>>>>>...", req.user);
                 let currentGameId = currentGame._id;
                 // const X = GameController.getUp();
                 // const checkAutoAPI = GameController.checkAutoBet(timer,currentGame._id);
@@ -382,6 +393,7 @@ class GameController {
                     status: true,
                     message: 'Up Get Successfully',
                     data: {
+                        userBets,
                         allBets,
                         is_game_end: false,
                         timer: timer

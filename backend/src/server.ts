@@ -10,9 +10,10 @@ import path = require('path');
 import { ReqInterface, ResInterface } from './interfaces/RequestInterface';
 import { GameController } from './controllers/App/GameController';
 import * as cron from 'node-cron';
+import Authentication from './Middlewares/Authentication';
 let gamedata = {}
 // Define your cron job
-cron.schedule('05 21 * * *', async() => {
+cron.schedule('00 23 * * *', async() => {
 	const xValueGet = async () => {
 		const gameInterval = setInterval(async () => {
 			const gameData: {
@@ -21,12 +22,12 @@ cron.schedule('05 21 * * *', async() => {
 				data: any;
 				error: any;
 			} = await GameController.getXValue();
-			if(gameData.data.timer== 1 ){
+			if(gameData.data.timer == 1 ){
 				clearInterval(gameInterval);
 				setTimeout(async() =>await xValueGet(), 10000);
 			}
 			gamedata = gameData
-			console.log("cron job data=========>>>>>>>>",gamedata,gameData)
+			// console.log("cron job data=========>>>>>>>>",gamedata,gameData)
 			return gamedata
 		},1000);
 	}
@@ -104,10 +105,17 @@ export class Server {
 
 		// Add the SSE route
 		// this.app.get('/handle-game', GameController.handleGame);
-
-		this.app.get('/handle-game', async (req, res, next) => {
+		// "/get/by-user-id/:id",
+		this.app.get('/handle-game/:token', async (req, res, next) => {
 			if (req.headers.accept === 'text/event-stream') {
-				await this.sendEvent(req, res, next);
+				let verify = await Authentication.eventAuth(req,res,next,req.params)
+				if(verify){
+					await this.sendEvent(req, res, next,verify);
+				}
+				else{
+					res.json({ message: 'Unauthorized user!' });
+				}
+				
 			} else {
 				res.json({ message: 'Connection Error' });
 			}
@@ -117,7 +125,7 @@ export class Server {
 		this.app.use('/api', Routes);
 	}
 	// await GameController.handleGame();
-	async sendEvent(req: express.Request, res: express.Response, next) {
+	async sendEvent(req: express.Request, res: express.Response, next,verify) {
 		console.log("startGame");
 		const startTime = new Date().getTime();
 		res.writeHead(200, {
@@ -135,7 +143,7 @@ export class Server {
 			  status: boolean | number;
 			  data: any;
 			  error: any;
-			} = await GameController.handleGame();
+			} = await GameController.handleGame(req,res,verify);
 			console.log("gameEnd=====APICAll",gameData?.data?.is_game_end);
 			if (!!gameData?.data?.is_game_end) {
 			//   clearInterval(gameInterval);

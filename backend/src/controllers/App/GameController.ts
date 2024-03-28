@@ -15,7 +15,7 @@ const { ObjectId } = require('mongodb');
 let timer = 1;
 let gameId = "";
 let secondCount = 0;
-const myArray = [90, 60, 30, 40, 50];
+const myArray = [10, 20, 30];
 const randomIndex = Math.floor(Math.random() * myArray.length);
 let randomItem = myArray[randomIndex];
 export class GameController {
@@ -361,7 +361,7 @@ export class GameController {
 			nextGame.base_amount = (maxBet?.deposit_amount)?(maxBet?.deposit_amount):10;
 			await nextGame.save();
 
-			// await ongoingGame.save();
+			await ongoingGame.save();
 
 			return true;
 		} catch (error) {
@@ -477,10 +477,10 @@ export class GameController {
 				// 	timer = 0;
 				// }
 				// else{
-					if(randomItem == secondCount){
 					console.log('timer and secondcount',randomItem,secondCount)
-						// ongosetTimeout(() => GameController.endGame(timer), 10000);
-						const gameEnd = await GameController.endGame(timer);
+					if(randomItem == secondCount){
+						setTimeout(() => GameController.endGame(timer), 10000);
+						// const gameEnd = await GameController.endGame(timer);
 						timer = 1;
 					}else{
 						timer += 0.01
@@ -505,7 +505,7 @@ export class GameController {
 			};
 		}
 	}
-	static async handleGame(): Promise<{
+	static async handleGame(req,res,userId): Promise<{
 		message: string;
 		status: boolean | number;
 		data: any;
@@ -513,10 +513,22 @@ export class GameController {
 	}> {
 		try {
 			const ongoingGame = await OngoingGame.findOne();
-			const currentGame = await Game.findById(ongoingGame?.current_game);
-			const allBets = await Bet.find({
-				game_id: currentGame?._id,
-			}).populate([{ path: 'user_id' }]);
+			let currentGame
+			let allBets
+			if(timer == 1){
+				currentGame = await Game.findById(ongoingGame?.next_game);
+				allBets = await Bet.find({
+					game_id: currentGame?._id,
+				}).populate([{ path: 'user_id' }]);
+			}
+			else{
+				currentGame = await Game.findById(ongoingGame?.current_game);
+				allBets = await Bet.find({
+					game_id: currentGame?._id,
+				}).populate([{ path: 'user_id' }]);
+			}
+			let userBets = await Bet.find({user_id:userId}).sort({created_at:-1})
+			
 
 			const baseAmount: number = currentGame?.base_amount;
 			const gameTotal: number =
@@ -545,7 +557,7 @@ export class GameController {
 			const remaining = +gameTotal - +totalWithdrawAmount;
 			const timeDiffInMs: number = Date.now() - currentGame?.start_time
 			const timeDiffInMs1: number = currentGame?.end_time;
-			console.log("handlegamehandlegame==============>>>>>>>>>>>...",ongoingGame)
+			console.log("handlegamehandlegame==============>>>>>>>>>>>...",req.user)
 			
 				let currentGameId = currentGame._id;
 				// const X = GameController.getUp();
@@ -555,6 +567,7 @@ export class GameController {
 					status: true,
 					message: 'Up Get Successfully',
 					data: {
+						userBets,
 						allBets,
 						is_game_end: false,
 						timer:timer
