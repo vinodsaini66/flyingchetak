@@ -125,15 +125,20 @@ const useGame = () => {
 	const handleWithdraw = ({
 		betId,
 		amount,
+		xVal,
 	}: {
 		betId: string;
 		amount: number;
+		xVal:number;
 	}) => {
-		let requestedAmount = amount
+		let requestedAmount = {
+			requestedAmount:amount,
+			xValue:xVal
+		}
 		request({
 			url: apiPath.gameWithdraw + '/' + betId,
 			method: 'POST',
-			data: { requestedAmount },
+			data: requestedAmount ,
 			onSuccess: ({ data, status }) => {
 				if (status) {
 					fetchData();
@@ -181,9 +186,9 @@ const useGame = () => {
 				if (data?.data?.allBets) {
 					setBets(data.data.allBets);
 				}
-				if(data?.data?.userBets.length>0){
-					setUserBets(data?.data?.userBets)
-				}
+				// if(data?.data?.userBets.length>0){
+				// 	setUserBets(data?.data?.userBets)
+				// }
 			}
 		});
 		source.addEventListener('error', (e) => {

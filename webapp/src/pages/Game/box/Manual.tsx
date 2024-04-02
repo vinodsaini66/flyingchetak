@@ -41,6 +41,7 @@ export const Manual = ({amount,handleChange,handleClick,buttonType,Deposite,x,be
 														Withdrawal({
 															betId: bets?._id,
 															amount: bets?.deposit_amount * x,
+															xVal:x
 														});
 													}}
 												>

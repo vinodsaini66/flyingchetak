@@ -11,9 +11,74 @@ import { ReqInterface, ResInterface } from './interfaces/RequestInterface';
 import { GameController } from './controllers/App/GameController';
 import * as cron from 'node-cron';
 import Authentication from './Middlewares/Authentication';
+
+
+const app = express();
+const cookieParser = require('cookie-parser');
+
+// const { createClient } = require('redis');
+// // const { config } = require('../../config');
+// // const redisConfig = config.redis;
+
+// const redisClientInit = async () => {
+//    const client = await createClient({});
+
+//   await client.connect();
+
+//   return client;
+// };
+// const redis = redisClientInit();
+
+// console.log("redis",redis)
+
+// function setResponse(username,repos){
+// 	return `<h3> ${username} has this ${repos}</h3>`
+// }
+
+// async function resuest(req,res,next){
+// 	try {
+// 		console.log("fetching data")
+// 		const { username } = req.params;
+// 		const response = await fetch(`https://api.github.com/users/${username}`)
+// 		const data = await response.json();
+// 		const repos = data.public_repos;
+// 		// client.set(username,3600,repos)
+// 		client.set("key", "value", (err, reply) => {
+// 			console.log(reply); // OK
+		  
+// 			client.get("key", (err, reply) => {
+// 			  console.log(reply); // value
+// 			});
+// 		  });
+// 		res.send(setResponse(username,repos))
+// 	} catch (error) {
+// 		console.log(error)
+// 		res.status(500)
+// 	}
+// }
+
+// function cache(req: Request, res: Response, next: NextFunction): void {
+//     const { username } = req.params as { username: string }; // Type assertion for username
+
+//     client.get(username, (err, data) => {
+//         if (err) {
+//             console.error('Redis error:', err);
+//             return next(err);
+//         }
+        
+//         if (data !== null) {
+//             res.send(setResponse(username, data));
+//         } else {
+//             next(); // Call the next middleware if data is not in cache
+//         }
+//     });
+// }
+
+
 let gamedata = {}
+let intervalNumber = 0
 // Define your cron job
-cron.schedule('45 23 * * *', async() => {
+cron.schedule('55 22 * * *', async() => {
 	const xValueGet = async () => {
 		const gameInterval = setInterval(async () => {
 			const gameData: {
@@ -29,14 +94,12 @@ cron.schedule('45 23 * * *', async() => {
 			gamedata = gameData
 			console.log("cron job data=========>>>>>>>>",gamedata,gameData)
 			return gamedata
-		},1000);
+		},500);
 	}
 	await xValueGet()
   });
 
 
-const app = express();
-const cookieParser = require('cookie-parser');
 
 const SEND_INTERVAL = 100;
 
@@ -120,13 +183,13 @@ export class Server {
 				res.json({ message: 'Connection Error' });
 			}
 		});
+		// this.app.get("/get/resuest/:username",resuest)
 
 		// Other routes
 		this.app.use('/api', Routes);
 	}
 	// await GameController.handleGame();
 	async sendEvent(req: express.Request, res: express.Response, next,verify) {
-		console.log("startGame");
 		const startTime = new Date().getTime();
 		res.writeHead(200, {
 		  'Cache-Control': 'no-cache',
@@ -135,8 +198,9 @@ export class Server {
 		});
 		const sseId = new Date().toDateString();
 		const handleGameInterval = async () => {
+			intervalNumber += 1
 			let timeStart = 0;
-		//   const gameInterval = setInterval(async () => {
+		  const gameInterval = setInterval(async () => {
 			// console.log("IntervalCall");
 			const gameData: {
 			  message: string;
@@ -144,9 +208,9 @@ export class Server {
 			  data: any;
 			  error: any;
 			} = await GameController.handleGame(req,res,verify);
-			console.log("gameEnd=====APICAll",gameData?.data?.is_game_end);
+			console.log("intervalNumberintervalNumber===>>>>>",intervalNumber);
 			if (!!gameData?.data?.is_game_end) {
-			//   clearInterval(gameInterval);
+			  clearInterval(gameInterval);
 			  this.writeEvent(
 				res,
 				sseId,
@@ -158,12 +222,13 @@ export class Server {
 				  timer:gamedata,
 				})
 			  );
-			  setTimeout(async() => await handleGameInterval(), 1000);
+			//   setTimeout(async() => await handleGameInterval(), 500);
 			}
+			
 	  
 			if (!!gameData.error) {
 			  this.handleErrors();
-			//   clearInterval(gameInterval);
+			  clearInterval(gameInterval);
 			}
 	  
 			this.writeEvent(
@@ -177,12 +242,14 @@ export class Server {
 				timer:gamedata
 			  })
 			);
-			setTimeout(async() => await handleGameInterval(), 1000);
-		//   }, 1000);
+			// setTimeout(async() => await handleGameInterval(), 500);
+		  }, 500);
 		} // Bind the function to the current context
 	  
 		await handleGameInterval();
 	}
+
+
 	  
 	  
 

@@ -15,7 +15,7 @@ const { ObjectId } = require('mongodb');
 let timer = 1;
 let gameId = "";
 let secondCount = 0;
-const myArray = [10, 20, 30];
+const myArray = [100, 150, 200];
 const randomIndex = Math.floor(Math.random() * myArray.length);
 let randomItem = myArray[randomIndex];
 export class GameController {
@@ -593,7 +593,7 @@ export class GameController {
 
 			const betId = req.params.id;
 			const bet = await Bet.findById(betId);
-			const { requestedAmount } = req.body;
+			const { requestedAmount,xValue } = req.body;
 
 			const baseAmount: number = currentGame?.base_amount;
 			const gameTotal: number =
@@ -647,6 +647,7 @@ export class GameController {
 			bet.withdraw_amount = requestedAmount;
 			bet.withdraw_at = Date.now();
 			bet.status = BetStatus.PLACED;
+			bet.xValue = xValue
 			await bet.save();
 
 			return _RS.api(res, true, 'Bet Win', bet, startTime);

@@ -37,7 +37,7 @@ export const Game = () => {
     let bet2 = localStorage.getItem("SecondBoxFutureBet")
 	let secondBoxBet = bet2 && JSON.parse(bet2)
 	console.log("isGameEndisGameEnd",isGameEnd)
-	console.log("timertimertimer",x,isGameEnd)
+	console.log("betbetsbets",bets)
 
 	const [form] = Form.useForm();
 
@@ -155,25 +155,25 @@ export const Game = () => {
 										<thead className=''>
 											<tr>
 												<th>User</th>
-												<th className='text-center'>Name </th>
 												<th className='text-center'> Bet, ₹ </th>
+												<th className='text-center'>X</th>
 												<th className='text-right'> Cash out, ₹ </th>
 											</tr>
 										</thead>
 										<tbody>
 											{bets?.map((bet: any) => (
-												<tr key={bet?._id}>
+												<tr style={bet?.status === "Placed" ? {background:"green"}:{}} key={bet?._id}>
 													<td>
 														<span className=''>
 															<img src='img/user.jpg' className='user_w' />
 														</span>
 													</td>
-													<td>
-														<span className=''>
-															{bet?.name}
-														</span>
-													</td>
 													<td className='text-center'>{bet?.deposit_amount}</td>
+													<td>
+														{bet?.status === "Placed" && <span className=''>
+															{bet?.xValue.toFixed(2)}
+														</span>}
+													</td>
 													<td className='text-right'>
 														{bet?.withdraw_amount ? bet?.withdraw_amount : 0}
 													</td>

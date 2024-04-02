@@ -38,6 +38,7 @@ export const Auto = ({handleChange,handleClick,amount,buttonType,Deposite,x,bets
                          Withdrawal({
                              betId: bets?._id,
                              amount: bets?.deposit_amount * x,
+                             xVal:x,
                          });
                      }}
                  >
