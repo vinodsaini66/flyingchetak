@@ -67,6 +67,7 @@ export class SocketService {
 		});
 
 		this.io.on('connection', async (socket: Socket) => {
+			console.log("socketworking==========>>>>>>>>>>")
 			this.onlineUsers.push(socket.id);
 			this.sockets[socket.data.user._id] = socket;
 

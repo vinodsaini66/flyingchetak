@@ -3,20 +3,36 @@ import { useEffect, useState } from 'react';
 import { apiPath, baseURL } from '../constant/ApiRoutes';
 import { Severty, ShowToast } from '../helper/toast';
 import useRequest from './useRequest';
+import io from 'socket.io-client';
+const socket = io('ws://localhost:8002');
 
 const useGame = () => {
 	const [gameData, setGameData] = useState<any>();
 	const [bets, setBets] = useState<any[]>([]);
 	const [userBets, setUserBets] = useState<any[]>([]);
 	const [balance, setBalance] = useState<number>(0);
-	const [x, setX] = useState<number>();
+	const [x, setX] = useState<number>(0);
 	const [fallHistory, setFallHistory] = useState<any[]>([]);
 	const [betAmount, setBetAmount] = useState<number>(10);
 	const [minBetAmount, setMinBetAmount] = useState<number>(10);
 	const [isGameEnd, setIsGameEnd] = useState<boolean>();
 	const [isLoading, setIsLoading] = useState<boolean>(true);
 	const [fallRate, setFallRate] = useState<any[]>([]);
-
+	useEffect(() => {
+		// Listen for messages from the server
+		socket.on("connection",(val)=>{
+			console.log('connected:',val)
+		})
+		socket.on('xValue',(val:any)=>{
+			console.log('x value----------',val)
+			// setX(x+1) 
+		  })
+	  
+	
+		return () => {
+		  socket.disconnect();
+		};
+	  }, [x]);
 
 	const { request } = useRequest();
 
@@ -33,7 +49,6 @@ const useGame = () => {
 			url: apiPath.gameInitialData,
 			method: 'GET',
 			onSuccess: ({ data, status }) => {
-				console.log("balancebalance",data)
 				if (status) {
 					setBalance(data?.balance);
 					setBets(data?.bets);
@@ -52,7 +67,6 @@ const useGame = () => {
 			url: apiPath.fallrate,
 			method: 'GET',
 			onSuccess: ({ data, status }) => {
-				console.log("sdbsdfbsdhfsdshf",data,status)
 				if (status) {
 					setFallHistory(data);
 				}
@@ -64,7 +78,6 @@ const useGame = () => {
 	};
 
 	const handleDeposit = (amount: number,type:string,betType:string) => {
-		console.log("beterror====>>>>",balance,amount)
 		if (balance < amount) {
 			ShowToast("You Don't have sufficient balance", Severty.ERROR);
 		} else if (amount < minBetAmount) {
@@ -186,9 +199,9 @@ const useGame = () => {
 				if (data?.data?.allBets) {
 					setBets(data.data.allBets);
 				}
-				// if(data?.data?.userBets.length>0){
-				// 	setUserBets(data?.data?.userBets)
-				// }
+				if(data?.data?.userBets.length>0){
+					setUserBets(data?.data?.userBets)
+				}
 			}
 		});
 		source.addEventListener('error', (e) => {
@@ -196,7 +209,6 @@ const useGame = () => {
 		});
 
 		return () => {
-			console.log("jbsdjfsbdjhbdfhj",source.readyState,EventSource.CLOSED)
 			if (source.readyState !== EventSource.CLOSED) {
 			  source.close(); // Close only if not already closed
 			}

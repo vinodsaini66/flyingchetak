@@ -11,6 +11,7 @@ import Transaction, {
 	Transaction_Types,
 } from '../../models/TransactionSetting';
 import AdminSetting from '../../models/AdminSetting';
+import * as express from 'express';
 const { ObjectId } = require('mongodb');
 let timer = 1;
 let gameId = "";
@@ -650,11 +651,78 @@ export class GameController {
 			bet.xValue = xValue
 			await bet.save();
 
+			GameController.sendEvent(req,res,next,req.user.id)
+
 			return _RS.api(res, true, 'Bet Win', bet, startTime);
 		} catch (error) {
 		console.log("handleWithdrawRequest5")
 			next(error);
 		}
+	}
+
+	// static async reCallfun(req,res,next)
+
+	static async sendEvent(req: express.Request, res: express.Response, next,verify) {
+		const startTime = new Date().getTime();
+		res.writeHead(200, {
+		  'Cache-Control': 'no-cache',
+		  Connection: 'keep-alive',
+		  'Content-Type': 'text/event-stream',
+		});
+		const sseId = new Date().toDateString();
+		const handleGameInterval = async () => {
+			let timeStart = 0;
+		//   const gameInterval = setInterval(async () => {
+			// console.log("IntervalCall");
+			const gameData: {
+			  message: string;
+			  status: boolean | number;
+			  data: any;
+			  error: any;
+			} = await GameController.handleGame(req,res,verify);
+
+			// if (!!gameData?.data?.is_game_end) {
+			// //   clearInterval(gameInterval);
+			//   writeEvent(
+			// 	res,
+			// 	sseId,
+			// 	JSON.stringify({
+			// 	  message: gameData.message,
+			// 	  status: gameData.status,
+			// 	  data: gameData.data,
+			// 	  startTime: startTime,
+			// 	})
+			//   );
+			// //   setTimeout(async() => await handleGameInterval(), 500);
+			// }
+			
+	  
+			// if (!!gameData.error) {
+			//   this.handleErrors();
+			// //   clearInterval(gameInterval);
+			// }
+	  
+			GameController.writeEvent(
+			  res,
+			  sseId,
+			  JSON.stringify({
+				message: gameData.message,
+				status: gameData.status,
+				data: gameData.data,
+				startTime: startTime
+			  })
+			);
+			// setTimeout(async() => await handleGameInterval(), 500);
+		//   }, 500);
+		} // Bind the function to the current context
+	  
+		await handleGameInterval();
+	}
+
+
+	static async writeEvent(res: express.Response, sseId: string, data: string) {
+		res.write(`id: ${sseId}\n`);
+		res.write(`data: ${data}\n\n`);
 	}
 
 	static async totalBet(req,res,next) {

@@ -10,6 +10,7 @@ import path = require('path');
 import { ReqInterface, ResInterface } from './interfaces/RequestInterface';
 import { GameController } from './controllers/App/GameController';
 import * as cron from 'node-cron';
+const socketIo = require('socket.io');
 import Authentication from './Middlewares/Authentication';
 
 
@@ -78,26 +79,27 @@ const cookieParser = require('cookie-parser');
 let gamedata = {}
 let intervalNumber = 0
 // Define your cron job
-cron.schedule('55 22 * * *', async() => {
-	const xValueGet = async () => {
-		const gameInterval = setInterval(async () => {
-			const gameData: {
-				message: string;
-				status: boolean | number;
-				data: any;
-				error: any;
-			} = await GameController.getXValue();
-			if(gameData.data.timer == 1 ){
-				clearInterval(gameInterval);
-				setTimeout(async() =>await xValueGet(), 10000);
-			}
-			gamedata = gameData
-			console.log("cron job data=========>>>>>>>>",gamedata,gameData)
-			return gamedata
-		},500);
-	}
-	await xValueGet()
-  });
+// cron.schedule('36 23 * * *', async() => {
+// 	const xValueGet = async () => {
+// 		const sseId = new Date().toDateString();
+// 		const gameInterval = setInterval(async () => {
+// 			const gameData: {
+// 				message: string;
+// 				status: boolean | number;
+// 				data: any;
+// 				error: any;
+// 			} = await GameController.getXValue();
+// 			if(gameData.data.timer == 1 ){
+// 				clearInterval(gameInterval);
+// 				setTimeout(async() =>await xValueGet(), 10000);
+// 			}
+// 			gamedata = gameData
+// 			console.log("cron job data=========>>>>>>>>",gamedata,gameData)
+// 			return gamedata
+// 		},500);
+// 	}
+// 	await xValueGet()
+//   });
 
 
 
@@ -189,7 +191,7 @@ export class Server {
 		this.app.use('/api', Routes);
 	}
 	// await GameController.handleGame();
-	async sendEvent(req: express.Request, res: express.Response, next,verify) {
+	 async sendEvent(req: express.Request, res: express.Response, next,verify) {
 		const startTime = new Date().getTime();
 		res.writeHead(200, {
 		  'Cache-Control': 'no-cache',
@@ -202,46 +204,46 @@ export class Server {
 			let timeStart = 0;
 		  const gameInterval = setInterval(async () => {
 			// console.log("IntervalCall");
-			const gameData: {
-			  message: string;
-			  status: boolean | number;
-			  data: any;
-			  error: any;
-			} = await GameController.handleGame(req,res,verify);
+			// const gameData: {
+			//   message: string;
+			//   status: boolean | number;
+			//   data: any;
+			//   error: any;
+			// } = await GameController.handleGame(req,res,verify);
 			console.log("intervalNumberintervalNumber===>>>>>",intervalNumber);
-			if (!!gameData?.data?.is_game_end) {
+			// if (!!gameData?.data?.is_game_end) {
 			  clearInterval(gameInterval);
 			  this.writeEvent(
 				res,
 				sseId,
 				JSON.stringify({
-				  message: gameData.message,
-				  status: gameData.status,
-				  data: gameData.data,
-				  startTime: startTime,
+				//   message: gameData.message,
+				//   status: gameData.status,
+				//   data: gameData.data,
+				//   startTime: startTime,
 				  timer:gamedata,
 				})
 			  );
 			//   setTimeout(async() => await handleGameInterval(), 500);
-			}
+			// }
 			
 	  
-			if (!!gameData.error) {
-			  this.handleErrors();
-			  clearInterval(gameInterval);
-			}
+			// if (!!gameData.error) {
+			//   this.handleErrors();
+			//   clearInterval(gameInterval);
+			// }
 	  
-			this.writeEvent(
-			  res,
-			  sseId,
-			  JSON.stringify({
-				message: gameData.message,
-				status: gameData.status,
-				data: gameData.data,
-				startTime: startTime,
-				timer:gamedata
-			  })
-			);
+			// this.writeEvent(
+			//   res,
+			//   sseId,
+			//   JSON.stringify({
+			// 	// message: gameData.message,
+			// 	// status: gameData.status,
+			// 	// data: gameData.data,
+			// 	// startTime: startTime,
+			// 	timer:gamedata
+			//   })
+			// );
 			// setTimeout(async() => await handleGameInterval(), 500);
 		  }, 500);
 		} // Bind the function to the current context
@@ -249,9 +251,6 @@ export class Server {
 		await handleGameInterval();
 	}
 
-
-	  
-	  
 
 	writeEvent(res: express.Response, sseId: string, data: string) {
 		res.write(`id: ${sseId}\n`);
@@ -269,7 +268,7 @@ export class Server {
 
 	handleErrors() {
 		this.app.use((error: any, req, res, next: NextFunction) => {
-			const errorStatus = req.errorStatus;
+			const errorStatus = req.errorStatus || "";
 			res.status(errorStatus || 500).json({
 				message: error.message || 'Something went wrong!!',
 				statusText: error.statusText || 'ERROR',

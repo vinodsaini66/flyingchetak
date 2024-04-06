@@ -36,8 +36,6 @@ export const Game = () => {
 	let firstBoxBet = bet1 && JSON.parse(bet1)
     let bet2 = localStorage.getItem("SecondBoxFutureBet")
 	let secondBoxBet = bet2 && JSON.parse(bet2)
-	console.log("isGameEndisGameEnd",isGameEnd)
-	console.log("betbetsbets",bets)
 
 	const [form] = Form.useForm();
 
@@ -49,7 +47,6 @@ export const Game = () => {
 		if (x == 1 && isGameEnd) {
 			audioRef?.current?.pause();
 		  } if(x > 1 && !isGameEnd && audioRef?.current) {
-			console.log("audoooooooooo",audioRef?.current)
 			audioRef?.current?.play();
 		  }
 	  };
