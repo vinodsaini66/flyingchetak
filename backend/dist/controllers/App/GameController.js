@@ -23,9 +23,10 @@ const { ObjectId } = require('mongodb');
 let timer = 1;
 let gameId = "";
 let secondCount = 0;
-const myArray = [10, 20, 30];
+const myArray = [200, 150, 300];
 const randomIndex = Math.floor(Math.random() * myArray.length);
 let randomItem = myArray[randomIndex];
+const socketTokenMap = new Map();
 class GameController {
     static getGamePageData(req, res, next) {
         var _b, _c, _d;
@@ -242,6 +243,7 @@ class GameController {
                 const randomIndex1 = Math.floor(Math.random() * myArray.length);
                 randomItem = myArray[randomIndex];
                 secondCount = 0;
+                //  socketTokenMap.set("_id", undefined);
                 const ongoingGame = yield OngoingGame_1.default.findOne();
                 const nextGame = yield Game_1.default.findById(ongoingGame === null || ongoingGame === void 0 ? void 0 : ongoingGame.next_game);
                 // change all current bet status to completed (only players who have't withdrawed money, as for else it was already updated to placed)
@@ -303,22 +305,9 @@ class GameController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 secondCount++;
-                // const ongoingGame = await OngoingGame.findOne();
-                // let id = ObjectId(ongoingGame?.current_game)
-                // const currentGame = await Game.findOne({_id:ongoingGame?.current_game,is_game_end:false});
-                // const timeDiffInMs1: number = currentGame?.end_time;
-                // result.length === 0 && 
-                // if (Date.now() >= Number(timeDiffInMs1)) {
-                // 	console.log("baintGame End ho gya hai ",Date.now())
-                // 	const gameEnd = await GameController.endGame();
-                // 	currentGame.is_game_end = true
-                // 	currentGame.save();
-                // 	timer = 0;
-                // }
-                // else{
-                console.log('timer and secondcount', randomItem, secondCount);
                 if (randomItem == secondCount) {
-                    setTimeout(() => GameController.endGame(timer), 10000);
+                    console.log('timer and secondcount', randomItem, secondCount);
+                    setTimeout(() => __awaiter(this, void 0, void 0, function* () { return yield GameController.endGame(timer); }), 10000);
                     // const gameEnd = await GameController.endGame(timer);
                     timer = 1;
                 }
@@ -334,7 +323,6 @@ class GameController {
                     },
                     error: null,
                 };
-                // };
             }
             catch (error) {
                 return {
@@ -346,7 +334,7 @@ class GameController {
             }
         });
     }
-    static handleGame(req, res, userId) {
+    static handleGame() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const ongoingGame = yield OngoingGame_1.default.findOne();
@@ -364,7 +352,8 @@ class GameController {
                         game_id: currentGame === null || currentGame === void 0 ? void 0 : currentGame._id,
                     }).populate([{ path: 'user_id' }]);
                 }
-                let userBets = yield Bet_1.default.find({ user_id: userId }).sort({ created_at: -1 });
+                const fallrate = yield Game_1.default.find().limit(10).sort({ created_at: -1 });
+                // let userBets = await Bet.find({user_id:userId}).sort({created_at:-1})
                 const baseAmount = currentGame === null || currentGame === void 0 ? void 0 : currentGame.base_amount;
                 const gameTotal = Math.round(((currentGame === null || currentGame === void 0 ? void 0 : currentGame.total_deposit) - (currentGame === null || currentGame === void 0 ? void 0 : currentGame.commission_amount)) * 100) / 100;
                 const result = yield Bet_1.default.aggregate([
@@ -385,15 +374,15 @@ class GameController {
                 const remaining = +gameTotal - +totalWithdrawAmount;
                 const timeDiffInMs = Date.now() - (currentGame === null || currentGame === void 0 ? void 0 : currentGame.start_time);
                 const timeDiffInMs1 = currentGame === null || currentGame === void 0 ? void 0 : currentGame.end_time;
-                console.log("handlegamehandlegame==============>>>>>>>>>>>...", req.user);
                 let currentGameId = currentGame._id;
+                // console.log("findoutgameendingprocess=========>>>>>>>>",ongoingGame)
                 // const X = GameController.getUp();
                 // const checkAutoAPI = GameController.checkAutoBet(timer,currentGame._id);
                 return {
                     status: true,
                     message: 'Up Get Successfully',
                     data: {
-                        userBets,
+                        fallrate,
                         allBets,
                         is_game_end: false,
                         timer: timer
@@ -420,7 +409,7 @@ class GameController {
                 const currentGame = yield Game_1.default.findById(ongoingGame === null || ongoingGame === void 0 ? void 0 : ongoingGame.current_game);
                 const betId = req.params.id;
                 const bet = yield Bet_1.default.findById(betId);
-                const { requestedAmount } = req.body;
+                const { requestedAmount, xValue } = req.body;
                 const baseAmount = currentGame === null || currentGame === void 0 ? void 0 : currentGame.base_amount;
                 const gameTotal = Math.round(((currentGame === null || currentGame === void 0 ? void 0 : currentGame.total_deposit) - (currentGame === null || currentGame === void 0 ? void 0 : currentGame.commission_amount)) * 100) / 100;
                 const result = yield Bet_1.default.aggregate([
@@ -462,6 +451,7 @@ class GameController {
                 bet.withdraw_amount = requestedAmount;
                 bet.withdraw_at = Date.now();
                 bet.status = Bet_1.BetStatus.PLACED;
+                bet.xValue = xValue;
                 yield bet.save();
                 return ResponseHelper_1.default.api(res, true, 'Bet Win', bet, startTime);
             }
@@ -501,7 +491,7 @@ class GameController {
                             mobile_number: "$customerInfo.mobile_number",
                         },
                     },
-                ]);
+                ]).sort({ created_at: -1 });
                 return ResponseHelper_1.default.api(res, true, "Btes Found Successfully", bet, startTime);
             }
             catch (error) {
@@ -534,6 +524,7 @@ _a = GameController;
 // 	return up;
 // };
 GameController.withdrowalAutomatically = (betId) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("withdrowalAutomatically============>>>>>>>>>>");
     const ongoingGame = yield OngoingGame_1.default.findOne();
     const currentGame = yield Game_1.default.findById(ongoingGame === null || ongoingGame === void 0 ? void 0 : ongoingGame.current_game);
     const bet = yield Bet_1.default.findById(betId);
@@ -572,14 +563,20 @@ GameController.withdrowalAutomatically = (betId) => __awaiter(void 0, void 0, vo
     bet.save();
     return true;
 });
-GameController.checkAutoBet = (xValue, game_id) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("checkAutoBet==========>>>>>>>>>>>");
+GameController.checkAutoBet = (xValue) => __awaiter(void 0, void 0, void 0, function* () {
+    // let id = socketTokenMap.get("_id");
+    // console.log("gameidgameid____before======>>>>>>",id,xValue)
+    // if(!id){
+    const ongoingGame = yield OngoingGame_1.default.findOne();
+    const currentGame = yield Game_1.default.findById(ongoingGame === null || ongoingGame === void 0 ? void 0 : ongoingGame.current_game);
+    // socketTokenMap.set("_id", currentGame._id);
+    // }
     const allBets = yield Bet_1.default.find({
-        game_id: game_id,
+        game_id: currentGame._id,
         bidType: "auto",
-        xValue: xValue
+        xValue: { $gte: xValue }
     }).populate([{ path: 'user_id' }]);
-    // console.log("checkautobet=========>>>>>>>>>",allBets)
+    console.log("checkautobet=========>>>>>>>>>", allBets);
     if (allBets.length > 0) {
         allBets.forEach((betsDetail, index) => {
             GameController.withdrowalAutomatically(betsDetail._id);

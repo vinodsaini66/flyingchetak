@@ -18,28 +18,81 @@ const cors = require("cors");
 const Env_1 = require("./environments/Env");
 const Routes_1 = require("./routes/Routes");
 const path = require("path");
-const GameController_1 = require("./controllers/App/GameController");
-const cron = require("node-cron");
+const socketIo = require('socket.io');
 const Authentication_1 = require("./Middlewares/Authentication");
-let gamedata = {};
-// Define your cron job
-cron.schedule('45 23 * * *', () => __awaiter(void 0, void 0, void 0, function* () {
-    const xValueGet = () => __awaiter(void 0, void 0, void 0, function* () {
-        const gameInterval = setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
-            const gameData = yield GameController_1.GameController.getXValue();
-            if (gameData.data.timer == 1) {
-                clearInterval(gameInterval);
-                setTimeout(() => __awaiter(void 0, void 0, void 0, function* () { return yield xValueGet(); }), 10000);
-            }
-            gamedata = gameData;
-            console.log("cron job data=========>>>>>>>>", gamedata, gameData);
-            return gamedata;
-        }), 1000);
-    });
-    yield xValueGet();
-}));
 const app = express();
 const cookieParser = require('cookie-parser');
+// const { createClient } = require('redis');
+// // const { config } = require('../../config');
+// // const redisConfig = config.redis;
+// const redisClientInit = async () => {
+//    const client = await createClient({});
+//   await client.connect();
+//   return client;
+// };
+// const redis = redisClientInit();
+// console.log("redis",redis)
+// function setResponse(username,repos){
+// 	return `<h3> ${username} has this ${repos}</h3>`
+// }
+// async function resuest(req,res,next){
+// 	try {
+// 		console.log("fetching data")
+// 		const { username } = req.params;
+// 		const response = await fetch(`https://api.github.com/users/${username}`)
+// 		const data = await response.json();
+// 		const repos = data.public_repos;
+// 		// client.set(username,3600,repos)
+// 		client.set("key", "value", (err, reply) => {
+// 			console.log(reply); // OK
+// 			client.get("key", (err, reply) => {
+// 			  console.log(reply); // value
+// 			});
+// 		  });
+// 		res.send(setResponse(username,repos))
+// 	} catch (error) {
+// 		console.log(error)
+// 		res.status(500)
+// 	}
+// }
+// function cache(req: Request, res: Response, next: NextFunction): void {
+//     const { username } = req.params as { username: string }; // Type assertion for username
+//     client.get(username, (err, data) => {
+//         if (err) {
+//             console.error('Redis error:', err);
+//             return next(err);
+//         }
+//         if (data !== null) {
+//             res.send(setResponse(username, data));
+//         } else {
+//             next(); // Call the next middleware if data is not in cache
+//         }
+//     });
+// }
+let gamedata = {};
+let intervalNumber = 0;
+// Define your cron job
+// cron.schedule('36 23 * * *', async() => {
+// 	const xValueGet = async () => {
+// 		const sseId = new Date().toDateString();
+// 		const gameInterval = setInterval(async () => {
+// 			const gameData: {
+// 				message: string;
+// 				status: boolean | number;
+// 				data: any;
+// 				error: any;
+// 			} = await GameController.getXValue();
+// 			if(gameData.data.timer == 1 ){
+// 				clearInterval(gameInterval);
+// 				setTimeout(async() =>await xValueGet(), 10000);
+// 			}
+// 			gamedata = gameData
+// 			console.log("cron job data=========>>>>>>>>",gamedata,gameData)
+// 			return gamedata
+// 		},500);
+// 	}
+// 	await xValueGet()
+//   });
 const SEND_INTERVAL = 100;
 class Server {
     constructor() {
@@ -104,13 +157,13 @@ class Server {
                 res.json({ message: 'Connection Error' });
             }
         }));
+        // this.app.get("/get/resuest/:username",resuest)
         // Other routes
         this.app.use('/api', Routes_1.default);
     }
     // await GameController.handleGame();
     sendEvent(req, res, next, verify) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("startGame");
             const startTime = new Date().getTime();
             res.writeHead(200, {
                 'Cache-Control': 'no-cache',
@@ -119,36 +172,45 @@ class Server {
             });
             const sseId = new Date().toDateString();
             const handleGameInterval = () => __awaiter(this, void 0, void 0, function* () {
-                var _a, _b;
+                intervalNumber += 1;
                 let timeStart = 0;
-                //   const gameInterval = setInterval(async () => {
-                // console.log("IntervalCall");
-                const gameData = yield GameController_1.GameController.handleGame(req, res, verify);
-                console.log("gameEnd=====APICAll", (_a = gameData === null || gameData === void 0 ? void 0 : gameData.data) === null || _a === void 0 ? void 0 : _a.is_game_end);
-                if (!!((_b = gameData === null || gameData === void 0 ? void 0 : gameData.data) === null || _b === void 0 ? void 0 : _b.is_game_end)) {
-                    //   clearInterval(gameInterval);
+                const gameInterval = setInterval(() => __awaiter(this, void 0, void 0, function* () {
+                    // console.log("IntervalCall");
+                    // const gameData: {
+                    //   message: string;
+                    //   status: boolean | number;
+                    //   data: any;
+                    //   error: any;
+                    // } = await GameController.handleGame(req,res,verify);
+                    console.log("intervalNumberintervalNumber===>>>>>", intervalNumber);
+                    // if (!!gameData?.data?.is_game_end) {
+                    clearInterval(gameInterval);
                     this.writeEvent(res, sseId, JSON.stringify({
-                        message: gameData.message,
-                        status: gameData.status,
-                        data: gameData.data,
-                        startTime: startTime,
+                        //   message: gameData.message,
+                        //   status: gameData.status,
+                        //   data: gameData.data,
+                        //   startTime: startTime,
                         timer: gamedata,
                     }));
-                    setTimeout(() => __awaiter(this, void 0, void 0, function* () { return yield handleGameInterval(); }), 1000);
-                }
-                if (!!gameData.error) {
-                    this.handleErrors();
+                    //   setTimeout(async() => await handleGameInterval(), 500);
+                    // }
+                    // if (!!gameData.error) {
+                    //   this.handleErrors();
                     //   clearInterval(gameInterval);
-                }
-                this.writeEvent(res, sseId, JSON.stringify({
-                    message: gameData.message,
-                    status: gameData.status,
-                    data: gameData.data,
-                    startTime: startTime,
-                    timer: gamedata
-                }));
-                setTimeout(() => __awaiter(this, void 0, void 0, function* () { return yield handleGameInterval(); }), 1000);
-                //   }, 1000);
+                    // }
+                    // this.writeEvent(
+                    //   res,
+                    //   sseId,
+                    //   JSON.stringify({
+                    // 	// message: gameData.message,
+                    // 	// status: gameData.status,
+                    // 	// data: gameData.data,
+                    // 	// startTime: startTime,
+                    // 	timer:gamedata
+                    //   })
+                    // );
+                    // setTimeout(async() => await handleGameInterval(), 500);
+                }), 500);
             }); // Bind the function to the current context
             yield handleGameInterval();
         });
@@ -167,7 +229,7 @@ class Server {
     }
     handleErrors() {
         this.app.use((error, req, res, next) => {
-            const errorStatus = req.errorStatus;
+            const errorStatus = req.errorStatus || "";
             res.status(errorStatus || 500).json({
                 message: error.message || 'Something went wrong!!',
                 statusText: error.statusText || 'ERROR',

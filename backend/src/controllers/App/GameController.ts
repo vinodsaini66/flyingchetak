@@ -16,9 +16,10 @@ const { ObjectId } = require('mongodb');
 let timer = 1;
 let gameId = "";
 let secondCount = 0;
-const myArray = [100, 150, 200];
+const myArray = [200, 150, 300];
 const randomIndex = Math.floor(Math.random() * myArray.length);
 let randomItem = myArray[randomIndex];
+const socketTokenMap = new Map();
 export class GameController {
 	static async getGamePageData(req, res, next) {
 		console.log("getgamepagedata=========>>>>>>>>>..")
@@ -294,6 +295,7 @@ export class GameController {
 			const randomIndex1 = Math.floor(Math.random() * myArray.length);
 			 randomItem = myArray[randomIndex];
 			 secondCount =0;
+			//  socketTokenMap.set("_id", undefined);
 			const ongoingGame = await OngoingGame.findOne();
 			const nextGame = await Game.findById(ongoingGame?.next_game);
 			// change all current bet status to completed (only players who have't withdrawed money, as for else it was already updated to placed)
@@ -396,6 +398,7 @@ export class GameController {
 
 	
 	static withdrowalAutomatically=async(betId)=>{
+		console.log("withdrowalAutomatically============>>>>>>>>>>")
 		const ongoingGame = await OngoingGame.findOne();
         const currentGame = await Game.findById(ongoingGame?.current_game);
         const bet = await Bet.findById(betId);
@@ -439,14 +442,21 @@ export class GameController {
 		return true;
 	} 
 
-	static checkAutoBet = async(xValue,game_id) => {
-		console.log("checkAutoBet==========>>>>>>>>>>>")
+	static checkAutoBet = async(xValue) => {
+				// let id = socketTokenMap.get("_id");
+				// console.log("gameidgameid____before======>>>>>>",id,xValue)
+				// if(!id){
+					const ongoingGame = await OngoingGame.findOne();
+					const currentGame = await Game.findById(ongoingGame?.current_game);
+					// socketTokenMap.set("_id", currentGame._id);
+
+				// }
 		const allBets = await Bet.find({
-			game_id: game_id,
+			game_id: currentGame._id,
 			bidType: "auto",
-			xValue: xValue
+			xValue: { $gte: xValue }
 		}).populate([{ path: 'user_id' }]);
-		// console.log("checkautobet=========>>>>>>>>>",allBets)
+		console.log("checkautobet=========>>>>>>>>>",allBets)
 		if(allBets.length>0){
 			allBets.forEach((betsDetail, index) => {
 				GameController.withdrowalAutomatically(betsDetail._id);
@@ -464,23 +474,9 @@ export class GameController {
 	}> {
 		try {	
 			secondCount++;
-			// const ongoingGame = await OngoingGame.findOne();
-			// let id = ObjectId(ongoingGame?.current_game)
-				// const currentGame = await Game.findOne({_id:ongoingGame?.current_game,is_game_end:false});
-				// const timeDiffInMs1: number = currentGame?.end_time;
-							// result.length === 0 && 
-				
-				// if (Date.now() >= Number(timeDiffInMs1)) {
-				// 	console.log("baintGame End ho gya hai ",Date.now())
-				// 	const gameEnd = await GameController.endGame();
-				// 	currentGame.is_game_end = true
-				// 	currentGame.save();
-				// 	timer = 0;
-				// }
-				// else{
-					console.log('timer and secondcount',randomItem,secondCount)
 					if(randomItem == secondCount){
-						setTimeout(() => GameController.endGame(timer), 10000);
+						console.log('timer and secondcount',randomItem,secondCount)
+						setTimeout(async() =>await GameController.endGame(timer), 10000);
 						// const gameEnd = await GameController.endGame(timer);
 						timer = 1;
 					}else{
@@ -496,7 +492,6 @@ export class GameController {
 					},
 					error: null,
 				};
-			// };
 		} catch (error) {
 			return {
 				status: false,
@@ -506,7 +501,7 @@ export class GameController {
 			};
 		}
 	}
-	static async handleGame(req,res,userId): Promise<{
+	static async handleGame(): Promise<{
 		message: string;
 		status: boolean | number;
 		data: any;
@@ -528,7 +523,8 @@ export class GameController {
 					game_id: currentGame?._id,
 				}).populate([{ path: 'user_id' }]);
 			}
-			let userBets = await Bet.find({user_id:userId}).sort({created_at:-1})
+			const fallrate = await Game.find().limit(10).sort({created_at:-1})
+			// let userBets = await Bet.find({user_id:userId}).sort({created_at:-1})
 			
 
 			const baseAmount: number = currentGame?.base_amount;
@@ -558,9 +554,9 @@ export class GameController {
 			const remaining = +gameTotal - +totalWithdrawAmount;
 			const timeDiffInMs: number = Date.now() - currentGame?.start_time
 			const timeDiffInMs1: number = currentGame?.end_time;
-			console.log("handlegamehandlegame==============>>>>>>>>>>>...",req.user)
 			
 				let currentGameId = currentGame._id;
+				// console.log("findoutgameendingprocess=========>>>>>>>>",ongoingGame)
 				// const X = GameController.getUp();
 				// const checkAutoAPI = GameController.checkAutoBet(timer,currentGame._id);
 
@@ -568,7 +564,7 @@ export class GameController {
 					status: true,
 					message: 'Up Get Successfully',
 					data: {
-						userBets,
+						fallrate,
 						allBets,
 						is_game_end: false,
 						timer:timer
@@ -651,8 +647,6 @@ export class GameController {
 			bet.xValue = xValue
 			await bet.save();
 
-			GameController.sendEvent(req,res,next,req.user.id)
-
 			return _RS.api(res, true, 'Bet Win', bet, startTime);
 		} catch (error) {
 		console.log("handleWithdrawRequest5")
@@ -660,70 +654,6 @@ export class GameController {
 		}
 	}
 
-	// static async reCallfun(req,res,next)
-
-	static async sendEvent(req: express.Request, res: express.Response, next,verify) {
-		const startTime = new Date().getTime();
-		res.writeHead(200, {
-		  'Cache-Control': 'no-cache',
-		  Connection: 'keep-alive',
-		  'Content-Type': 'text/event-stream',
-		});
-		const sseId = new Date().toDateString();
-		const handleGameInterval = async () => {
-			let timeStart = 0;
-		//   const gameInterval = setInterval(async () => {
-			// console.log("IntervalCall");
-			const gameData: {
-			  message: string;
-			  status: boolean | number;
-			  data: any;
-			  error: any;
-			} = await GameController.handleGame(req,res,verify);
-
-			// if (!!gameData?.data?.is_game_end) {
-			// //   clearInterval(gameInterval);
-			//   writeEvent(
-			// 	res,
-			// 	sseId,
-			// 	JSON.stringify({
-			// 	  message: gameData.message,
-			// 	  status: gameData.status,
-			// 	  data: gameData.data,
-			// 	  startTime: startTime,
-			// 	})
-			//   );
-			// //   setTimeout(async() => await handleGameInterval(), 500);
-			// }
-			
-	  
-			// if (!!gameData.error) {
-			//   this.handleErrors();
-			// //   clearInterval(gameInterval);
-			// }
-	  
-			GameController.writeEvent(
-			  res,
-			  sseId,
-			  JSON.stringify({
-				message: gameData.message,
-				status: gameData.status,
-				data: gameData.data,
-				startTime: startTime
-			  })
-			);
-			// setTimeout(async() => await handleGameInterval(), 500);
-		//   }, 500);
-		} // Bind the function to the current context
-	  
-		await handleGameInterval();
-	}
-
-
-	static async writeEvent(res: express.Response, sseId: string, data: string) {
-		res.write(`id: ${sseId}\n`);
-		res.write(`data: ${data}\n\n`);
-	}
 
 	static async totalBet(req,res,next) {
 		
@@ -755,7 +685,8 @@ export class GameController {
 							  mobile_number:"$customerInfo.mobile_number",
 							},
 					  },
-				])
+				]).sort({created_at:-1})
+
 			return _RS.api(
                 res,
                 true,

@@ -1,4 +1,7 @@
+import Authentication from './Middlewares/Authentication';
 import { GameController } from './controllers/App/GameController';
+import Game from './models/Game';
+import OngoingGame from './models/OngoingGame';
 import { Server } from './server';
 const http = require('http'); // Require http module for creating HTTP server
 const express = require('express');
@@ -27,42 +30,82 @@ const io = socketIo(server, {
 
 
 let gamedata = {}
-
-cron.schedule('48 00 * * *', async() => {
+let sethandlegame = 0
+cron.schedule('01 00 * * *', async() => {
 	const xValueGet = async () => {
 		const sseId = new Date().toDateString();
-		const gameInterval = setInterval(async () => {
-			const gameData: {
+		const XInterval = setInterval(async () => {
+			const xData: {
 				message: string;
 				status: boolean | number;
 				data: any;
 				error: any;
 			} = await GameController.getXValue();
-			if(gameData.data.timer == 1 ){
-				clearInterval(gameInterval);
+			if(xData.data.timer == 1 ){
+				clearInterval(XInterval);
+				gameDataGet()
 				setTimeout(async() =>await xValueGet(), 10000);
 			}
-			gamedata = gameData
-			console.log("cron job data=========>>>>>>>>",gamedata,gameData)
-			return gamedata
-		},500);
+			if(xData.data.timer>1){
+				const checkAutoAPI = GameController.checkAutoBet(xData.data.timer);
+			}
+			io.emit('xValue', xData);
+		},200);
+		const gameDataGet = async () => {
+		var gameInterval = setInterval(async()=>{
+						const gameData: {
+							message: string;
+							status: boolean | number;
+							data: any;
+							error: any;
+						  } = await GameController.handleGame();
+						if(gameData.data.timer > 1 ){
+							clearInterval(gameInterval);
+						}
+						  io.emit('gameData', gameData);
+					
+		},1000)
+	}
+	gameDataGet()
 	}
 	await xValueGet()
   });
 
 
+//   io.use((socket, next) => {
+// 	// Validate and decode token
+// 	const token = socket.handshake.auth.token;
+// 	try {
+// 		let verify = await Authentication.eventAuth(req,res,next,req.params)
+// 	  // Store user ID or any other identifier
+// 	  socket.userId = decoded.userId;
+// 	  next();
+// 	} catch (error) {
+// 	  console.error('Authentication error:', error);
+// 	  next(new Error('Authentication error'));
+// 	}
+//   });
 
-io.on('connection', (socket) => {
-	// console.log('A user connected');
-	socket.emit("xValue",gamedata)
-	// setInterval(() => {
-	// 	const data = Math.random(); // Example data, replace with your actual data
-	// 	socket?.emit("xValue",gamedata) // Emit data to all connected clients
-	//   }, 5000);
-	socket.on('disconnect', () => {
-	  console.log('User disconnected');
-	});
-  });
+
+
+io.on('connection', async(socket) => {
+
+		console.log('New user connected',socket.handshake.auth.token);
+		const { token } = socket.handshake.auth;
+		const gameData: {
+			message: string;
+			status: boolean | number;
+			data: any;
+			error: any;
+		  } = await GameController.handleGame();
+
+		socket.emit('gameData', gameData);
+
+	    socket.on('disconnect', () => {
+    	  console.log('User disconnected');
+    	});
+  	});
+
 
 
 server.listen(port, () => {

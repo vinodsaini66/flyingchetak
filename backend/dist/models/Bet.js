@@ -23,7 +23,7 @@ const Bet = new Schema({
     betType: { type: String },
     boxType: { type: String },
     xValue: { type: Number },
-    win_amount: { type: Number, default: 0 },
+    withdraw_amount: { type: Number, default: 0 },
     withdraw_at: { type: String, default: null }, // Date.now()
 }, {
     timestamps: {

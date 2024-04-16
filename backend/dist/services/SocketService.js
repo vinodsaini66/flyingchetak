@@ -69,6 +69,7 @@ class SocketService {
                 }
             }));
             this.io.on('connection', (socket) => __awaiter(this, void 0, void 0, function* () {
+                console.log("socketworking==========>>>>>>>>>>");
                 this.onlineUsers.push(socket.id);
                 this.sockets[socket.data.user._id] = socket;
                 socket.on('sendMessage', (data, callback) => {
