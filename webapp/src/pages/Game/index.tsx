@@ -38,15 +38,16 @@ export const Game = () => {
 	let secondBoxBet = bet2 && JSON.parse(bet2)
 
 	const [form] = Form.useForm();
+	console.log("valuesss===>>>",isGameEnd)
 
 	const formWatchedValues = Form.useWatch([], form);
-	useEffect(()=>{
-		// togglePlay()
-	},[isGameEnd])
+	// useEffect(()=>{
+	// 	togglePlay()
+	// },[isGameEnd])
 	const togglePlay = () => {
-		if (x == 1 && isGameEnd) {
+		if (isGameEnd) {
 			audioRef?.current?.pause();
-		  } if(x > 1 && !isGameEnd && audioRef?.current) {
+		  } if(!isGameEnd) {
 			audioRef?.current?.play();
 		  }
 	  };
@@ -172,7 +173,7 @@ export const Game = () => {
 														</span>}
 													</td>
 													<td className='text-right'>
-														{bet?.withdraw_amount ? bet?.withdraw_amount : 0}
+														{bet?.withdraw_amount ? bet?.withdraw_amount.toFixed() : 0}
 													</td>
 												</tr>
 											))}
@@ -194,8 +195,8 @@ export const Game = () => {
 										<thead className=''>
 											<tr>
 												<th>User</th>
-												<th className='text-center'>Name </th>
 												<th className='text-center'> Bet, ₹ </th>
+												<th className='text-center'>X</th>
 												<th className='text-right'> Cash out, ₹ </th>
 											</tr>
 										</thead>
@@ -207,12 +208,14 @@ export const Game = () => {
 															<img src='img/user.jpg' className='user_w' />
 														</span>
 													</td>
-													<td>
-														{bet?.name}
-													</td>
 													<td className='text-center'>{bet?.deposit_amount}</td>
+													{bet?.status === "Placed" ? <span className='text-center'>
+															{bet?.xValue?.toFixed(2) || 1}
+														</span>:<span className='text-center'>
+															 1
+														</span>}
 													<td className='text-right'>
-														{bet?.withdraw_amount ? bet?.withdraw_amount : 0}
+														{bet?.withdraw_amount ? bet?.withdraw_amount?.toFixed() : 0}
 													</td>
 												</tr>
 											))}
@@ -221,8 +224,13 @@ export const Game = () => {
 								</div>
 							</div>
 						)}
+						{/* <audio ref={audioRef}>
+							<source src="../../img/horseringtone.mp3" type="audio/mpeg" />
+							Your browser does not support the audio element.
+						</audio> */}
 					</div>
 				</div>
+				
 
 				<div className='game_right'>
 					<div className='top_scor'>

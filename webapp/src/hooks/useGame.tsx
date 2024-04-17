@@ -4,7 +4,11 @@ import { apiPath, baseURL } from '../constant/ApiRoutes';
 import { Severty, ShowToast } from '../helper/toast';
 import useRequest from './useRequest';
 import io from 'socket.io-client';
-const socket = io('ws://localhost:8002');
+const socket = io('http://localhost:8002',{
+	auth: {
+	  token: localStorage.getItem("token"),
+	},
+  });;
 
 const useGame = () => {
 	const [gameData, setGameData] = useState<any>();
@@ -18,21 +22,64 @@ const useGame = () => {
 	const [isGameEnd, setIsGameEnd] = useState<boolean>();
 	const [isLoading, setIsLoading] = useState<boolean>(true);
 	const [fallRate, setFallRate] = useState<any[]>([]);
-	useEffect(() => {
-		// Listen for messages from the server
+	useEffect(() => { 
+		getUserBets()
+		setIsLoading(true)
 		socket.on("connection",(val)=>{
 			console.log('connected:',val)
+		})  
+		socket.on('xValue',(data:any)=>{
+			setIsLoading(false)
+			if (data?.data?.timer>1) {
+				setX(data.data.timer);
+				setIsGameEnd(false);
+			}
+			else{
+				let local:any = localStorage.getItem("FirstBoxFutureBet")
+					let local1  =JSON.parse(local)
+					let local2:any = localStorage.getItem("SecondBoxFutureBet")
+					let local3  =JSON.parse(local2)
+					fetchData()
+					if(local1){
+						handleDeposit(local1.amount,local1.type,local1.betType)
+						localStorage.removeItem("FirstBoxFutureBet")
+					}
+					if(local3){
+						handleDeposit(local1.amount,local1.type,local1.betType)
+						localStorage.removeItem("SecondBoxFutureBet")
+					}
+				setIsGameEnd(true);
+				setX(data.data.timer);
+				
+					
+			}
+			
 		})
-		socket.on('xValue',(val:any)=>{
-			console.log('x value----------',val)
-			// setX(x+1) 
-		  })
-	  
+		// const createInterval = setInterval(async()=>{
+			socket.on("gameData",(gameData:any)=>{
+				console.log("gameDatagameData",gameData)
+				// console.log("jbsdjfbsdfbsdf",data)
+				// setFallHistory(gameData?.data?.fallrate);
+				if (gameData?.data?.allBets) {
+					setBets(gameData.data.allBets);
+				}
+				if(gameData?.data?.userBets?.length>0){
+					setUserBets(gameData?.data?.userBets)
+				}
+			})
+
+			socket.emit("userId","23tgejbfsdjf")
+		// },1000)
+
+		
+	 
+		// return () => {
+		//   if (socket) {
+		// 	socket.disconnect();
+		//   }
+		// };
+	  }, []);
 	
-		return () => {
-		  socket.disconnect();
-		};
-	  }, [x]);
 
 	const { request } = useRequest();
 
@@ -69,6 +116,21 @@ const useGame = () => {
 			onSuccess: ({ data, status }) => {
 				if (status) {
 					setFallHistory(data);
+				}
+			},
+			onError: (error) => {
+				ShowToast(error, Severty.ERROR);
+			},
+		});
+	};
+	const getUserBets = () => {
+		request({
+			url: apiPath.getBets,
+			method: 'GET',
+			onSuccess: ({ data, status }) => {
+				if (status) {
+					console.log("sdjhfbsdjhfbsjfhsd",data)
+					setUserBets(data);
 				}
 			},
 			onError: (error) => {
@@ -174,8 +236,8 @@ const useGame = () => {
 			if (data?.status) {
 				setIsLoading(false)
 				if (data?.data?.timer>1) {
-					setX(data.data.timer);
-					setIsGameEnd(false);
+					// setX(data.data.timer);
+					// setIsGameEnd(false);
 				}
 				else {
 					let local:any = localStorage.getItem("FirstBoxFutureBet")
@@ -190,8 +252,8 @@ const useGame = () => {
 						handleDeposit(local1.amount,local1.type,local1.betType)
 						localStorage.removeItem("SecondBoxFutureBet")
 					}
-					setIsGameEnd(true);
-					setX(data.data.timer);
+					// setIsGameEnd(true);
+					// setX(data.data.timer);
 					// fetchData()
 					// source.close();
 				}
