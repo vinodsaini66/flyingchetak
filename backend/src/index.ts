@@ -31,7 +31,7 @@ const io = socketIo(server, {
 
 let gamedata = {}
 let sethandlegame = 0
-cron.schedule('01 00 * * *', async() => {
+cron.schedule('30 14* * *', async() => {
 	const xValueGet = async () => {
 		const sseId = new Date().toDateString();
 		const XInterval = setInterval(async () => {
