@@ -19,7 +19,6 @@ const Env_1 = require("./environments/Env");
 const Routes_1 = require("./routes/Routes");
 const path = require("path");
 const socketIo = require('socket.io');
-const Authentication_1 = require("./Middlewares/Authentication");
 const app = express();
 const cookieParser = require('cookie-parser');
 // const { createClient } = require('redis');
@@ -143,20 +142,19 @@ class Server {
         // Add the SSE route
         // this.app.get('/handle-game', GameController.handleGame);
         // "/get/by-user-id/:id",
-        this.app.get('/handle-game/:token', (req, res, next) => __awaiter(this, void 0, void 0, function* () {
-            if (req.headers.accept === 'text/event-stream') {
-                let verify = yield Authentication_1.default.eventAuth(req, res, next, req.params);
-                if (verify) {
-                    yield this.sendEvent(req, res, next, verify);
-                }
-                else {
-                    res.json({ message: 'Unauthorized user!' });
-                }
-            }
-            else {
-                res.json({ message: 'Connection Error' });
-            }
-        }));
+        // this.app.get('/handle-game/:token', async (req, res, next) => {
+        // 	if (req.headers.accept === 'text/event-stream') {
+        // 		let verify = await Authentication.eventAuth(req,res,next,req.params)
+        // 		if(verify){
+        // 			await this.sendEvent(req, res, next,verify);
+        // 		}
+        // 		else{
+        // 			res.json({ message: 'Unauthorized user!' });
+        // 		}
+        // 	} else {
+        // 		res.json({ message: 'Connection Error' });
+        // 	}
+        // });
         // this.app.get("/get/resuest/:username",resuest)
         // Other routes
         this.app.use('/api', Routes_1.default);

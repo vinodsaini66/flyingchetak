@@ -22,6 +22,7 @@ const useGame = () => {
 	const [isGameEnd, setIsGameEnd] = useState<boolean>();
 	const [isLoading, setIsLoading] = useState<boolean>(true);
 	const [fallRate, setFallRate] = useState<any[]>([]);
+	const [userCurrentBets, setUserCurrentBets] = useState<any[]>([])
 	useEffect(() => { 
 		getUserBets()
 		setIsLoading(true)
@@ -33,8 +34,10 @@ const useGame = () => {
 			if (data?.data?.timer>1) {
 				setX(data.data.timer);
 				setIsGameEnd(false);
+				socket.emit("token","23tgejbfsdjf")
 			}
 			else{
+				socket.emit("token","23tgejbfsdjf")
 				let local:any = localStorage.getItem("FirstBoxFutureBet")
 					let local1  =JSON.parse(local)
 					let local2:any = localStorage.getItem("SecondBoxFutureBet")
@@ -68,7 +71,7 @@ const useGame = () => {
 				}
 			})
 
-			socket.emit("userId","23tgejbfsdjf")
+			socket.emit("token","23tgejbfsdjf")
 		// },1000)
 
 		

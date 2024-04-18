@@ -33,7 +33,7 @@ const io = socketIo(server, {
 });
 let gamedata = {};
 let sethandlegame = 0;
-cron.schedule('30 11 * * *', () => __awaiter(void 0, void 0, void 0, function* () {
+cron.schedule('30 00 * * *', () => __awaiter(void 0, void 0, void 0, function* () {
     const xValueGet = () => __awaiter(void 0, void 0, void 0, function* () {
         const sseId = new Date().toDateString();
         const XInterval = setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
@@ -55,25 +55,15 @@ cron.schedule('30 11 * * *', () => __awaiter(void 0, void 0, void 0, function* (
                     clearInterval(gameInterval);
                 }
                 io.emit('gameData', gameData);
+                io.on('token', (token) => {
+                    console.log("tokentokentokentoken=========>>>>>>>>>", token);
+                });
             }), 1000);
         });
         gameDataGet();
     });
     yield xValueGet();
 }));
-//   io.use((socket, next) => {
-// 	// Validate and decode token
-// 	const token = socket.handshake.auth.token;
-// 	try {
-// 		let verify = await Authentication.eventAuth(req,res,next,req.params)
-// 	  // Store user ID or any other identifier
-// 	  socket.userId = decoded.userId;
-// 	  next();
-// 	} catch (error) {
-// 	  console.error('Authentication error:', error);
-// 	  next(new Error('Authentication error'));
-// 	}
-//   });
 io.on('connection', (socket) => __awaiter(void 0, void 0, void 0, function* () {
     console.log('New user connected', socket.handshake.auth.token);
     const { token } = socket.handshake.auth;

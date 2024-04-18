@@ -171,20 +171,20 @@ export class Server {
 		// Add the SSE route
 		// this.app.get('/handle-game', GameController.handleGame);
 		// "/get/by-user-id/:id",
-		this.app.get('/handle-game/:token', async (req, res, next) => {
-			if (req.headers.accept === 'text/event-stream') {
-				let verify = await Authentication.eventAuth(req,res,next,req.params)
-				if(verify){
-					await this.sendEvent(req, res, next,verify);
-				}
-				else{
-					res.json({ message: 'Unauthorized user!' });
-				}
+		// this.app.get('/handle-game/:token', async (req, res, next) => {
+		// 	if (req.headers.accept === 'text/event-stream') {
+		// 		let verify = await Authentication.eventAuth(req,res,next,req.params)
+		// 		if(verify){
+		// 			await this.sendEvent(req, res, next,verify);
+		// 		}
+		// 		else{
+		// 			res.json({ message: 'Unauthorized user!' });
+		// 		}
 				
-			} else {
-				res.json({ message: 'Connection Error' });
-			}
-		});
+		// 	} else {
+		// 		res.json({ message: 'Connection Error' });
+		// 	}
+		// });
 		// this.app.get("/get/resuest/:username",resuest)
 
 		// Other routes
