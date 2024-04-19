@@ -33,7 +33,7 @@ const io = socketIo(server, {
 });
 let gamedata = {};
 let sethandlegame = 0;
-cron.schedule('20 22 * * *', () => __awaiter(void 0, void 0, void 0, function* () {
+cron.schedule('58 22 * * *', () => __awaiter(void 0, void 0, void 0, function* () {
     const xValueGet = () => __awaiter(void 0, void 0, void 0, function* () {
         const sseId = new Date().toDateString();
         const XInterval = setInterval(() => __awaiter(void 0, void 0, void 0, function* () {

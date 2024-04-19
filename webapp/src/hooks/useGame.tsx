@@ -5,11 +5,11 @@ import { Severty, ShowToast } from '../helper/toast';
 import useRequest from './useRequest';
 import io from 'socket.io-client';
 import { WalletContext } from '../context/WalletContext';
-const socket = io('http://localhost:8002',{
+const socket = io('http://34.123.238.205',{
 	auth: {
 	  token: localStorage.getItem("token"),
 	},
-  });;
+  });
 
 const useGame = () => {
 	const [gameData, setGameData] = useState<any>();
