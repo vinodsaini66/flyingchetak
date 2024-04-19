@@ -16,32 +16,36 @@ const WalletProvider = ({children}:any) => {
 
     
     useEffect(()=>{
-        const token  = localStorage.getItem("token")
-        if(!token){
-            return
-        }
-        console.log("token",token)
-          request({
-             url: apiPath.getWalletBalance,
-             method: "GET",
-             onSuccess: (data) => {
-               if (data.status) {
-                setWalaletDetails(data.data)
-                // setAgain(false)
-               } else {
-                 ShowToast(data.message, Severty.ERROR);
-               }
-             },
-             onError: (error) => {
-               ShowToast(error.response.data.message, Severty.ERROR);
-             },
-           });
-       
+      walletData()
     },[isLoggedIn,again])
+
+    const walletData = () => {
+      const token  = localStorage.getItem("token")
+      if(!token){
+          return
+      }
+      console.log("token",token)
+        request({
+           url: apiPath.getWalletBalance,
+           method: "GET",
+           onSuccess: (data) => {
+             if (data.status) {
+              setWalaletDetails(data.data)
+              // setAgain(false)
+             } else {
+               ShowToast(data.message, Severty.ERROR);
+             }
+           },
+           onError: (error) => {
+             ShowToast(error.response.data.message, Severty.ERROR);
+           },
+         });
+    }
     return (
       <>
       <WalletContext.Provider value={{
         walletDetails,
+        walletData,
         again,
         setAgain
         }}>

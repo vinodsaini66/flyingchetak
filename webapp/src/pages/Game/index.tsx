@@ -21,7 +21,7 @@ export const Game = () => {
 		const {
 			handleDeposit,
 			handleAutoDeposit,
-			fetchData,
+			walletData,
 			fetchFallRate,
 			isLoading,
 			fixData,
@@ -92,7 +92,7 @@ export const Game = () => {
 		}
 	};
 	useEffect(() => {
-		fetchData();
+		walletData();
 		fetchFallRate()
 	}, []);
 	return (

@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 
 import { apiPath, baseURL } from '../constant/ApiRoutes';
 import { Severty, ShowToast } from '../helper/toast';
 import useRequest from './useRequest';
 import io from 'socket.io-client';
+import { WalletContext } from '../context/WalletContext';
 const socket = io('http://localhost:8002',{
 	auth: {
 	  token: localStorage.getItem("token"),
@@ -23,6 +24,8 @@ const useGame = () => {
 	const [isLoading, setIsLoading] = useState<boolean>(true);
 	const [fallRate, setFallRate] = useState<any[]>([]);
 	const [userCurrentBets, setUserCurrentBets] = useState<any[]>([])
+	const { walletDetails,walletData} = useContext(WalletContext)
+	console.log("walletdetails",walletDetails)
 	useEffect(() => { 
 		getUserBets()
 		setIsLoading(true)
@@ -34,15 +37,15 @@ const useGame = () => {
 			if (data?.data?.timer>1) {
 				setX(data.data.timer);
 				setIsGameEnd(false);
-				socket.emit("token","23tgejbfsdjf")
+			console.log("handlegamedata",balance);
+
 			}
 			else{
-				socket.emit("token","23tgejbfsdjf")
 				let local:any = localStorage.getItem("FirstBoxFutureBet")
 					let local1  =JSON.parse(local)
 					let local2:any = localStorage.getItem("SecondBoxFutureBet")
 					let local3  =JSON.parse(local2)
-					fetchData()
+					walletData()
 					if(local1){
 						handleDeposit(local1.amount,local1.type,local1.betType)
 						localStorage.removeItem("FirstBoxFutureBet")
@@ -58,11 +61,8 @@ const useGame = () => {
 			}
 			
 		})
-		// const createInterval = setInterval(async()=>{
+		
 			socket.on("gameData",(gameData:any)=>{
-				console.log("gameDatagameData",gameData)
-				// console.log("jbsdjfbsdfbsdf",data)
-				// setFallHistory(gameData?.data?.fallrate);
 				if (gameData?.data?.allBets) {
 					setBets(gameData.data.allBets);
 				}
@@ -71,10 +71,6 @@ const useGame = () => {
 				}
 			})
 
-			socket.emit("token","23tgejbfsdjf")
-		// },1000)
-
-		
 	 
 		// return () => {
 		//   if (socket) {
@@ -92,25 +88,6 @@ const useGame = () => {
 		} else if (type == 'dec') {
 			setBetAmount(betAmount - 1);
 		}
-	};
-
-	const fetchData = () => {
-		request({
-			url: apiPath.gameInitialData,
-			method: 'GET',
-			onSuccess: ({ data, status }) => {
-				if (status) {
-					setBalance(data?.balance);
-					setBets(data?.bets);
-					// setUserBets(data?.userBets);
-					setMinBetAmount(data?.minBetAmount);
-					setGameData(data?.ongoingGame);
-				}
-			},
-			onError: (error) => {
-				ShowToast(error, Severty.ERROR);
-			},
-		});
 	};
 	const fetchFallRate = () => {
 		request({
@@ -132,7 +109,6 @@ const useGame = () => {
 			method: 'GET',
 			onSuccess: ({ data, status }) => {
 				if (status) {
-					console.log("sdjhfbsdjhfbsjfhsd",data)
 					setUserBets(data);
 				}
 			},
@@ -143,7 +119,7 @@ const useGame = () => {
 	};
 
 	const handleDeposit = (amount: number,type:string,betType:string) => {
-		if (balance < amount) {
+		if (walletDetails?.balance < amount) {
 			ShowToast("You Don't have sufficient balance", Severty.ERROR);
 		} else if (amount < minBetAmount) {
 			ShowToast(`Min Bet should be of ${minBetAmount}`, Severty.ERROR);
@@ -160,7 +136,7 @@ const useGame = () => {
 				onSuccess: ({ data, message, status }) => {
 					if (status) {
 						ShowToast(message, Severty.SUCCESS);
-						fetchData();
+						walletData()
 					}
 				},
 				onError: (error) => {
@@ -170,7 +146,7 @@ const useGame = () => {
 		}
 	};
 	const handleAutoDeposit = (amount: number,type:string,betType:string,x:number) => {
-		if (balance < amount) {
+		if (walletDetails?.balance < amount) {
 			ShowToast("You Don't have sufficient balance", Severty.ERROR);
 		} else if (x<0) {
 			ShowToast(`X Can't be negative or zero`, Severty.ERROR);
@@ -190,7 +166,7 @@ const useGame = () => {
 				onSuccess: ({ data, message, status }) => {
 					if (status) {
 						ShowToast(message, Severty.SUCCESS);
-						fetchData();
+						walletData();
 					}
 				},
 				onError: (error) => {
@@ -219,77 +195,22 @@ const useGame = () => {
 			data: requestedAmount ,
 			onSuccess: ({ data, status }) => {
 				if (status) {
-					fetchData();
+					walletData();
 				}
 			},
 		});
 	};
 
-	useEffect(() => {
-		const token = localStorage.getItem("token")
-		const source = new EventSource(`${baseURL}handle-game/${token}`);
-
-		source.addEventListener('open', () => {
-			console.log('SSE opened!');
-		});
-
-		source.addEventListener('message', (e) => {
-			console.log(e.data);
-			const data = JSON.parse(e.data);
-			if (data?.status) {
-				setIsLoading(false)
-				if (data?.data?.timer>1) {
-					// setX(data.data.timer);
-					// setIsGameEnd(false);
-				}
-				else {
-					let local:any = localStorage.getItem("FirstBoxFutureBet")
-					let local1  =JSON.parse(local)
-					let local2:any = localStorage.getItem("SecondBoxFutureBet")
-					let local3  =JSON.parse(local2)
-					if(local1){
-						handleDeposit(local1.amount,local1.type,local1.betType)
-						localStorage.removeItem("FirstBoxFutureBet")
-					}
-					if(local3){
-						handleDeposit(local1.amount,local1.type,local1.betType)
-						localStorage.removeItem("SecondBoxFutureBet")
-					}
-					// setIsGameEnd(true);
-					// setX(data.data.timer);
-					// fetchData()
-					// source.close();
-				}
-				
-				if (data?.data?.allBets) {
-					setBets(data.data.allBets);
-				}
-				if(data?.data?.userBets.length>0){
-					setUserBets(data?.data?.userBets)
-				}
-			}
-		});
-		source.addEventListener('error', (e) => {
-			console.error('Error: ', e);
-		});
-
-		return () => {
-			if (source.readyState !== EventSource.CLOSED) {
-			  source.close(); // Close only if not already closed
-			}
-		};
-	}, []);
-
 	return {
 		handleDeposit,
 		handleAutoDeposit,
-		fetchData,
+		walletData,
 		fetchFallRate,
 		setBets,
 		isLoading,
 		fixData: {
 			minBetAmount,
-			balance,
+			balance:walletDetails?.balance,
 			fallHistory,
 		},
 		betAmount,
