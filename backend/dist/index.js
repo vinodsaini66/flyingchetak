@@ -26,7 +26,8 @@ app.use(cors({
 const io = socketIo(server, {
     cors: {
         // origin: "http://localhost:3000",
-        origin: "http://34.123.238.205",
+        // origin:"http://34.123.238.205",
+        origin: "http://web.thelotusonline777.com",
         methods: ["GET", "POST"],
         allowedHeaders: ["my-custom-header"],
         credentials: true
@@ -34,7 +35,7 @@ const io = socketIo(server, {
 });
 let gamedata = {};
 let sethandlegame = 0;
-cron.schedule('58 22 * * *', () => __awaiter(void 0, void 0, void 0, function* () {
+cron.schedule('05 23 * * *', () => __awaiter(void 0, void 0, void 0, function* () {
     const xValueGet = () => __awaiter(void 0, void 0, void 0, function* () {
         const sseId = new Date().toDateString();
         const XInterval = setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
