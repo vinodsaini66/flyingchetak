@@ -27,7 +27,8 @@ export const AuthProvider = memo(({children}:any) => {
         onSuccess: (data) => {
           if (data.status) {
             setIsLoggedIn(true);
-            localStorage.setItem("userProfile", JSON.stringify(data.data.user));
+            console.log("dfsdjfbsdjhbsdfhjds",data)
+            localStorage.setItem("userId", data.data._id);
             setUserProfile(data.data);
           } else {
             ShowToast(data.message, Severty.ERROR);

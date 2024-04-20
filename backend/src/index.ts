@@ -21,9 +21,9 @@ app.use(cors({
 
 const io = socketIo(server, {
   cors: {
-    // origin: "http://localhost:3000",
+    origin: "http://localhost:3000",
 	// origin:"http://34.123.238.205",
-	origin:"http://web.thelotusonline777.com",
+	// origin:"http://web.thelotusonline777.com",
     methods: ["GET", "POST"],
     allowedHeaders: ["my-custom-header"],
     credentials: true
@@ -33,7 +33,7 @@ const io = socketIo(server, {
 
 let gamedata = {}
 let sethandlegame = 0
-cron.schedule('05 23 * * *', async() => {
+// cron.schedule('05 23 * * *', async() => {
 	const xValueGet = async () => {
 		const sseId = new Date().toDateString();
 		const XInterval = setInterval(async () => {
@@ -65,17 +65,13 @@ cron.schedule('05 23 * * *', async() => {
 							clearInterval(gameInterval);
 						}
 						  io.emit('gameData', gameData);
-						  io.on('token',(token)=>{
-						console.log("tokentokentokentoken=========>>>>>>>>>",token)  
-						})
-						  
 					
 		},1000)
 	}
 	gameDataGet()
 	}
-	await xValueGet()
-  });
+	// await xValueGet()
+//   });
 
   io.on('connection', async(socket) => {
 
@@ -97,7 +93,8 @@ cron.schedule('05 23 * * *', async() => {
 
 
 
-server.listen(port, () => {
+server.listen(port, async() => {
+	await xValueGet()
   console.log(`Server is listening at port ${port}`);
 });
 

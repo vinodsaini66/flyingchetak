@@ -5,7 +5,8 @@ import { Severty, ShowToast } from '../helper/toast';
 import useRequest from './useRequest';
 import io from 'socket.io-client';
 import { WalletContext } from '../context/WalletContext';
-const socket = io('http://34.123.238.205',{
+import { AuthContext } from '../context/AuthContext';
+const socket = io(baseURL,{
 	auth: {
 	  token: localStorage.getItem("token"),
 	},
@@ -25,7 +26,8 @@ const useGame = () => {
 	const [fallRate, setFallRate] = useState<any[]>([]);
 	const [userCurrentBets, setUserCurrentBets] = useState<any[]>([])
 	const { walletDetails,walletData} = useContext(WalletContext)
-	console.log("walletdetails",walletDetails)
+	const { userProfile } =useContext(AuthContext)
+
 	useEffect(() => { 
 		getUserBets()
 		setIsLoading(true)
@@ -38,14 +40,14 @@ const useGame = () => {
 				setX(data.data.timer);
 				setIsGameEnd(false);
 			console.log("handlegamedata",balance);
-
 			}
 			else{
 				let local:any = localStorage.getItem("FirstBoxFutureBet")
 					let local1  =JSON.parse(local)
 					let local2:any = localStorage.getItem("SecondBoxFutureBet")
 					let local3  =JSON.parse(local2)
-					walletData()
+					setTimeout(()=>fetchData(),10000)
+					// walletData()
 					if(local1){
 						handleDeposit(local1.amount,local1.type,local1.betType)
 						localStorage.removeItem("FirstBoxFutureBet")
@@ -56,13 +58,15 @@ const useGame = () => {
 					}
 				setIsGameEnd(true);
 				setX(data.data.timer);
-				
-					
+						
 			}
-			
 		})
-		
+		    
 			socket.on("gameData",(gameData:any)=>{
+				const userId = localStorage.getItem("userId")
+				const data = gameData?.data?.allBets?.filter((item:any,i:number)=>{return item?.user_id?._id == userId});
+				setUserCurrentBets(data)
+				setFallHistory(gameData?.data?.fallrate)
 				if (gameData?.data?.allBets) {
 					setBets(gameData.data.allBets);
 				}
@@ -96,6 +100,26 @@ const useGame = () => {
 			onSuccess: ({ data, status }) => {
 				if (status) {
 					setFallHistory(data);
+				}
+			},
+			onError: (error) => {
+				ShowToast(error, Severty.ERROR);
+			},
+		});
+	};
+
+	const fetchData = () => {
+		request({
+			url: apiPath.gameInitialData,
+			method: 'GET',
+			onSuccess: ({ data, status }) => {
+				console.log("balancebalance",data)
+				if (status) {
+					// setBalance(data?.balance);
+					setBets(data?.bets);
+					// setUserBets(data?.userBets);
+					setMinBetAmount(data?.minBetAmount);
+					setGameData(data?.ongoingGame);
 				}
 			},
 			onError: (error) => {
@@ -217,6 +241,7 @@ const useGame = () => {
 		x,
 		bets,
 		userBets,
+		userCurrentBets,
 		changeBetAmount,
 		isGameEnd,
 		handleWithdraw,

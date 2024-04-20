@@ -6,7 +6,7 @@ import { Auto } from "./Auto";
 export const SingleBetBox = ({Deposite,bets,x,Withdrawal,buttonType,loading,autoDeposite,futureBet}:any) => {
     const [boxType, setBoxType] = useState<string>("Manual")
     const [betAmount, setBetAmount] = useState<number>(10)
-    console.log("sjbsddjhfbsfhs",futureBet)
+    console.log("dfjbdsjhhfbdfjhbsdfds=====>>>.",bets)
 
     const handleAmountClick = (type:string,amnt:number) => {
         // amount+amnt>8000 ? setError("Amount should be less than 8000"):setError("")

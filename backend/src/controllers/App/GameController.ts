@@ -656,10 +656,11 @@ export class GameController {
 
 
 	static async totalBet(req,res,next) {
-		
+		console.log("totlbets................>>>>>>>>>",req.user)
 		const startTime = new Date().getTime();
 		try{
 			let bet=await Bet.aggregate([
+				{$match:{user_id:req.user._id}},
 					{
 						$lookup: {
 						  from: "users",

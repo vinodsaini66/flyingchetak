@@ -28,6 +28,7 @@ export const Game = () => {
 			bets,
 			userBets,
 			x,
+			userCurrentBets,
 			isGameEnd,
 			setBets,
 			handleWithdraw,
@@ -38,7 +39,7 @@ export const Game = () => {
 	let secondBoxBet = bet2 && JSON.parse(bet2)
 
 	const [form] = Form.useForm();
-	console.log("valuesss===>>>",isGameEnd)
+	console.log("userCurrentBetsuserCurrentBets===>>>",userCurrentBets)
 
 	const formWatchedValues = Form.useWatch([], form);
 	// useEffect(()=>{
@@ -92,7 +93,7 @@ export const Game = () => {
 		}
 	};
 	useEffect(() => {
-		walletData();
+		// walletData();
 		fetchFallRate()
 	}, []);
 	return (
@@ -204,18 +205,20 @@ export const Game = () => {
 											{userBets?.map((bet: any) => (
 												<tr key={bet?._id}>
 													<td>
-														<span className=''>
+														<span className='d-flex'>
 															<img src='img/user.jpg' className='user_w' />
+															<h6>{bet?.name}</h6>
 														</span>
+														
 													</td>
-													<td className='text-center'>{bet?.deposit_amount}</td>
-													{bet?.status === "Placed" ? <span className='text-center'>
-															{bet?.xValue?.toFixed(2) || 1}
-														</span>:<span className='text-center'>
-															 1
-														</span>}
+													<td className='text-center'>{bet?.deposit_amount?.toFixed(2)}</td>
+													<td>
+													{bet?.status === "Placed" ? <span className='text-right'>
+															{bet?.xValue?.toFixed(2) || "-"}
+														</span>:<span className='text-right'></span>}
+													</td>
 													<td className='text-right'>
-														{bet?.withdraw_amount ? bet?.withdraw_amount?.toFixed() : 0}
+														{bet?.withdraw_amount ? bet?.withdraw_amount?.toFixed(2) : 0}
 													</td>
 												</tr>
 											))}
@@ -261,7 +264,7 @@ export const Game = () => {
 					<div className="row">
   
 	<SingleBetBox 
-	bets={userBets && userBets[0]}
+	bets={userCurrentBets && userCurrentBets[0]}
 	Deposite={handleDepositFormSubmit}
 	x={x}
 	Withdrawal={handleWithdraw}
@@ -270,7 +273,7 @@ export const Game = () => {
 	futureBet={firstBoxBet}
 	/>
 	<SingleBetBox 
-	bets={userBets && userBets[1]}
+	bets={userCurrentBets && userCurrentBets[1]}
 	Deposite={handleDepositFormSubmit}
 	x={x}
 	buttonType={"Second"}
