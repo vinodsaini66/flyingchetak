@@ -1,9 +1,10 @@
 import { useState } from "react"
 import { IncButton } from "./IncButton"
 
-export const Auto = ({handleChange,handleClick,amount,buttonType,Deposite,x,bets,Withdrawal,futureBet}:any) => {
+export const Auto = ({handleChange,handleClick,amount,buttonType,Deposite,x,bets,Withdrawal,futureBet,setFutureBet}:any) => {
     const [autoX ,setAutoX] = useState<number>(1.0)
     const [checked ,setChecked] = useState<boolean>(false)
+    console.log("betsbetsbetbsgetesb====>>>>",bets)
     return (
         <div id="Auto" className="tab-pane">
 <div  className="first-row auto-game-feature auto-game">
@@ -23,10 +24,12 @@ export const Auto = ({handleChange,handleClick,amount,buttonType,Deposite,x,bets
             />
    </div>
    <div  className="buttons-block">
-   {(futureBet?.type === buttonType && futureBet?.betType === "Auto")?<><button className="btn btn-danger" style={{backgroundColor:"red"}} onClick={()=>{localStorage.removeItem(`${buttonType+"BoxFutureBet"}`)}}>Cancel</button><h6>Waiting for next round</h6></>
+   {(futureBet?.type === buttonType && futureBet?.betType === "Auto") || (bets?.betType
+ === "Auto" && bets?.boxType == buttonType && x === 1)?<><button className="btn btn-danger" style={{backgroundColor:"red"}} onClick={()=>{setFutureBet({})}}>Cancel</button><h6>Waiting for next round</h6></>
      : bets &&
      bets?.deposit_amount && 
-     bets.status == "Pending" &&
+     bets.status == "Active" &&
+     bets?.betType=== "Auto" &&
      x !== 1 ?
          <>
          <div id='Bet' className='tab-pane  in active'>

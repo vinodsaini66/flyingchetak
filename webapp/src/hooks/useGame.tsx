@@ -28,60 +28,76 @@ const useGame = () => {
 	const { walletDetails,walletData} = useContext(WalletContext)
 	const { userProfile } =useContext(AuthContext)
 
-	useEffect(() => { 
-		getUserBets()
-		setIsLoading(true)
-		socket.on("connection",(val)=>{
-			console.log('connected:',val)
-		})  
-		socket.on('xValue',(data:any)=>{
-			setIsLoading(false)
-			if (data?.data?.timer>1) {
-				setX(data.data.timer);
-				setIsGameEnd(false);
-			console.log("handlegamedata",balance);
-			}
-			else{
-				let local:any = localStorage.getItem("FirstBoxFutureBet")
-					let local1  =JSON.parse(local)
-					let local2:any = localStorage.getItem("SecondBoxFutureBet")
-					let local3  =JSON.parse(local2)
-					setTimeout(()=>fetchData(),10000)
-					// walletData()
-					if(local1){
-						handleDeposit(local1.amount,local1.type,local1.betType)
-						localStorage.removeItem("FirstBoxFutureBet")
-					}
-					if(local3){
-						handleDeposit(local1.amount,local1.type,local1.betType)
-						localStorage.removeItem("SecondBoxFutureBet")
-					}
-				setIsGameEnd(true);
-				setX(data.data.timer);
+	// useEffect(() => { 
+	// 	getUserBets()
+	// 	setIsLoading(true)
+	// 	socket.on("connection",(val)=>{
+	// 		console.log('connected:',val)
+	// 	})  
+	// 	socket.on('xValue',(data:any)=>{
+	// 		setIsLoading(false)
+	// 		if (data?.data?.timer>1) {
+	// 			setX(data.data.timer);
+	// 			setIsGameEnd(false);
+	// 		console.log("handlegamedata",balance);
+	// 		}
+	// 		else{
+	// 			let local:any = localStorage.getItem("FirstBoxFutureBet")
+	// 				let local1  =JSON.parse(local)
+	// 				let local2:any = localStorage.getItem("SecondBoxFutureBet")
+	// 				let local3  =JSON.parse(local2)
+	// 				// setTimeout(()=>fetchData(),10000)
+	// 				// walletData()
+	// 				if(local1){
+	// 					handleDeposit(local1.amount,local1.type,local1.betType)
+	// 					// localStorage.removeItem("FirstBoxFutureBet")
+	// 				}
+	// 				if(local3){
+	// 					handleDeposit(local1.amount,local1.type,local1.betType)
+	// 					// localStorage.removeItem("SecondBoxFutureBet")
+	// 				}
+	// 			setIsGameEnd(true);
+	// 			setX(data.data.timer);
 						
-			}
-		})
+	// 		}
+	// 	})
 		    
-			socket.on("gameData",(gameData:any)=>{
-				const userId = localStorage.getItem("userId")
-				const data = gameData?.data?.allBets?.filter((item:any,i:number)=>{return item?.user_id?._id == userId});
-				setUserCurrentBets(data)
-				setFallHistory(gameData?.data?.fallrate)
-				if (gameData?.data?.allBets) {
-					setBets(gameData.data.allBets);
-				}
-				if(gameData?.data?.userBets?.length>0){
-					setUserBets(gameData?.data?.userBets)
-				}
-			})
+	// 		socket.on("gameData",(gameData:any)=>{
+	// 			const userId = localStorage.getItem("userId")
+	// 			let data = gameData?.data?.allBets?.filter((item:any,i:number)=>{return item?.user_id?._id == userId});
+	// 			if (data) {
+	// 				data.sort((a:any, b:any) => {
+	// 				  if (a.boxType < b.boxType) {
+	// 					return -1;
+	// 				  }
+	// 				  if (a.boxType > b.boxType) {
+	// 					return 1;
+	// 				  }
+	// 				  return 0;
+	// 				});
+	// 			}
+	// 			if(data){
+	// 				localStorage.removeItem("FirstBoxFutureBet")
+	// 				localStorage.removeItem("SecondBoxFutureBet")
+	// 			}
+				
+	// 			setUserCurrentBets(data)
+	// 			setFallHistory(gameData?.data?.fallrate)
+	// 			if (gameData?.data?.allBets) {
+	// 				setBets(gameData.data.allBets);
+	// 			}
+	// 			if(gameData?.data?.userBets?.length>0){
+	// 				setUserBets(gameData?.data?.userBets)
+	// 			}
+	// 		})
 
 	 
-		// return () => {
-		//   if (socket) {
-		// 	socket.disconnect();
-		//   }
-		// };
-	  }, []);
+	// 	// return () => {
+	// 	//   if (socket) {
+	// 	// 	socket.disconnect();
+	// 	//   }
+	// 	// };
+	//   }, []);
 	
 
 	const { request } = useRequest();
@@ -142,17 +158,17 @@ const useGame = () => {
 		});
 	};
 
-	const handleDeposit = (amount: number,type:string,betType:string) => {
-		if (walletDetails?.balance < amount) {
+	const handleDeposit = (betData:any) => {
+		if (walletDetails?.balance < betData?.amount) {
 			ShowToast("You Don't have sufficient balance", Severty.ERROR);
-		} else if (amount < minBetAmount) {
+		} else if (betData?.amount < minBetAmount) {
 			ShowToast(`Min Bet should be of ${minBetAmount}`, Severty.ERROR);
 		} else {
-			let payload: any = {
-				amount: amount,
-				boxType:type,
-				betType:betType
-			};
+			let payload = {
+				boxType:betData.type,
+				betType:betData.betType,
+				amount:betData.amount
+			}
 			request({
 				url: apiPath.gameDeposit,
 				method: 'POST',
@@ -169,20 +185,20 @@ const useGame = () => {
 			});
 		}
 	};
-	const handleAutoDeposit = (amount: number,type:string,betType:string,x:number) => {
-		if (walletDetails?.balance < amount) {
+	const handleAutoDeposit = (betData:any) => {
+		if (walletDetails?.balance < betData?.amount) {
 			ShowToast("You Don't have sufficient balance", Severty.ERROR);
-		} else if (x<0) {
+		} else if (betData?.x<0) {
 			ShowToast(`X Can't be negative or zero`, Severty.ERROR);
-		}else if (amount < minBetAmount) {
+		}else if (betData?.amount < minBetAmount) {
 			ShowToast(`Min Bet should be of ${minBetAmount}`, Severty.ERROR);
 		} else {
-			let payload: any = {
-				amount: amount,
-				boxType:type,
-				betType:betType,
-				xValue:x
-			};
+			let payload = {
+				boxType:betData.type,
+				betType:betData.betType,
+				amount:betData.amount,
+				xValue:betData.x
+			}
 			request({
 				url: apiPath.gameAutoDeposite,
 				method: 'POST',

@@ -1,9 +1,11 @@
+import { useContext } from "react"
 import Loader from "../../../component/Loader"
 import { IncButton } from "./IncButton"
+import { SocketContext } from "../../../context/SocketContext"
 
-export const Manual = ({amount,handleChange,handleClick,buttonType,Deposite,x,bets,Withdrawal,futureBet}:any) => {
-
-    console.log("futureBetfutureBet",futureBet)
+export const Manual = ({amount,handleChange,handleClick,buttonType,Deposite,bets,Withdrawal,futureBet,setFutureBet}:any) => {
+	const {x,setFirstBoxFutureBet} = useContext(SocketContext)
+    console.log("futureBetfutureBet",futureBet,bets)
     return (
         <div id="Bet" className="tab-pane  in active">
 		<div  className="first-row auto-game-feature auto-game">
@@ -17,19 +19,20 @@ export const Manual = ({amount,handleChange,handleClick,buttonType,Deposite,x,be
                                                               {/* <span style={{color:"red"}}>{error}</span> */}
                    <div  className="buttons"><button  type="button" className="plus ng-star-inserted" onClick={()=>{handleClick("Inc",1)}}><i className="fa fa-plus" ></i></button></div>
                 </div>
-                
              </div>
 			<IncButton
             handleClick={handleClick}
             />
 		</div>
 		<div  className="buttons-block">
-        {(futureBet?.type === buttonType && futureBet?.betType === "Manual")?<><button className="btn btn-danger" style={{backgroundColor:"red"}} onClick={()=>{localStorage.removeItem(`${buttonType+"BoxFutureBet"}`)}}>Cancel</button>
+        {(futureBet?.type === buttonType && futureBet?.betType === "Manual") || (bets?.betType
+			=== "Manual" && bets?.boxType == buttonType && x === 1)?<><button className="btn btn-danger" style={{backgroundColor:"red"}} onClick={()=>{setFutureBet({})}}>Cancel</button>
             <h6>Waiting for the next round</h6>
             </>
                                     : bets &&
 									bets?.deposit_amount && 
-									bets.status == "Active" &&
+									bets?.status == "Active" &&
+									bets?.betType=== "Manual" &&
 									x !== 1 ?
                                         <>
 										<div id='Bet' className='tab-pane  in active'>
