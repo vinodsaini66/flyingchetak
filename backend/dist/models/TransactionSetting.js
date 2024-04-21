@@ -42,6 +42,9 @@ const Transaction = new Schema({
         type: String,
         enum: Object.values(exports.Status_Types),
     },
+    betType: {
+        type: String
+    },
     wallet_id: {
         type: Schema.Types.ObjectId,
         ref: 'Wallet',

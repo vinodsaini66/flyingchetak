@@ -5,7 +5,7 @@ export declare class GameController {
     static autoBet(req: any, res: any, next: any): Promise<void>;
     static getCurrentGameSession(req: any, res: any, next: any): Promise<void>;
     static endGame(timerValue: any): Promise<boolean>;
-    static withdrowalAutomatically: (betId: any) => Promise<true | void>;
+    static withdrowalAutomatically: (betId: any) => Promise<boolean | void>;
     static checkAutoBet: (xValue: any) => Promise<boolean>;
     static getXValue(): Promise<{
         message: string;

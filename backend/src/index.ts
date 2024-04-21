@@ -32,17 +32,20 @@ const io = socketIo(server, {
 
 
 let gamedata = {}
-let sethandlegame = 0
+let setVarForInterval = 0
+var XInterval
 // cron.schedule('05 23 * * *', async() => {
 	const xValueGet = async () => {
+		setVarForInterval = 0
 		const sseId = new Date().toDateString();
-		const XInterval = setInterval(async () => {
+			XInterval = setInterval(async () => {
 			const xData: {
 				message: string;
 				status: boolean | number;
 				data: any;
 				error: any;
 			} = await GameController.getXValue();
+			// console.log("timetimetimeritismnbdmb......?>>>>>",xData.data)
 			if(xData.data.timer == 1 ){
 				clearInterval(XInterval);
 				gameDataGet()
@@ -53,7 +56,10 @@ let sethandlegame = 0
 			}
 			io.emit('xValue', xData);
 		},200);
-		const gameDataGet = async () => {
+		
+	gameDataGet()
+	}
+	const gameDataGet = async () => {
 		var gameInterval = setInterval(async()=>{
 						const gameData: {
 							message: string;
@@ -61,6 +67,7 @@ let sethandlegame = 0
 							data: any;
 							error: any;
 						  } = await GameController.handleGame();
+						//   console.log("gamedatagamedatagamedata==>>>>>>>>>",gameData.data.timer)
 						if(gameData.data.timer > 1 ){
 							clearInterval(gameInterval);
 						}
@@ -68,14 +75,38 @@ let sethandlegame = 0
 					
 		},1000)
 	}
-	gameDataGet()
+	
+	export const xInterValClear = async() => {
+		const xData = { data:{
+			timer:1}
+		}
+		clearInterval(XInterval);  
+		if(setVarForInterval === 0){
+			setVarForInterval += 1
+			gameDataGet()
+			io.emit('xValue', xData);
+			setTimeout(async() =>await xValueGet(), 10000);
+		}
+		// setTimeout(function(){
+		// 	clearInterval(XInterval);
+		// 	console.log('stoped');
+		//   },100);
+		// console.log("checkautobet=========>>>>>>>>>",XInterval)
+		// if (XInterval === null) {
+		// 	console.log("The interval has been cleared.");
+		// 	gameDataGet()
+		// 	io.emit('xValue', xData);
+		// 	setTimeout(async() =>await xValueGet(), 10000);
+		// } else {
+		// 	// clearInterval(XInterval);
+		// 	xInterValClear()
+		// 	console.log("The interval is still active.");
+		// }
 	}
-	// await xValueGet()
-//   });
 
   io.on('connection', async(socket) => {
 
-		console.log('New user connected',socket.handshake.auth.token);
+		// console.log('New user connected',socket.handshake.auth.token);
 		const { token } = socket.handshake.auth;
 		const gameData: {
 			message: string;
@@ -97,73 +128,4 @@ server.listen(port, async() => {
 	await xValueGet()
   console.log(`Server is listening at port ${port}`);
 });
-
-
-// io.on('connection', (socket) => {
-//   console.log('Client connected');
-
-//   // Handle messages from the client
-//   socket.on('message', (message) => {
-//     console.log(`Received message: ${message}`);
-//     // Broadcast the message to all connected clients
-//     io.emit('message', message);
-//   });
-
-//   // Handle client disconnection
-//   socket.on('disconnect', () => {
-//     console.log('Client disconnected');
-//   });
-// });
-
-
-// import { Server } from 'socket.io';
-// const io = new Server(8002, {
-// 	cors: {
-// 	  origin: "http://localhost:3000",
-// 	  methods: ["GET", "POST"],
-// 	  allowedHeaders: ["my-custom-header"],
-// 	  credentials: true
-// 	}
-//   })
-// const express = require('express');
-// const http = require('http').createServer(express); 
-
-// io.on("connection", (socket) => { 
-// 	global.socket= socket
-// 	 socket.emit("xValue","1")
-// 	//   socket.on("disconnect", () => {
-// 	//     console.log("A user disconnected");
-// 	//   });
-// });
-
-// http.listen(port, () => {
-// 	console.log(`server is listening at port ${port}`);
-// 	// socketObj.init(server);
-// 	// socketObj.connect();
-// 	// console.log('Socket Connected');
-// });
-
-
-// import { Server } from './server';
-// const server: any = require('http').Server(new Server().app);
-// import socketObj from './services/SocketService';
-// import cluster from 'cluster';
-// import * as os from 'os'
-
-// const totalCpu = os.cpus().length;
-// console.log(totalCpu)
-// console.log("cluster",cluster)
-// if(cluster.isPrimary){
-//     for(let i = 0; i < totalCpu; i++){
-//         cluster.fork();
-//     }
-// }else{  
-// let port = process.env.PORT || 8002;
-// server.listen(port, () => {
-// 	console.log(`server is listening at port ${port}`);
-// 	socketObj.init(server);
-// 	socketObj.connect();
-// 	console.log('Socket Connected');
-// });
-// }
 
