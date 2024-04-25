@@ -12,6 +12,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.xInterValClear = exports.io = void 0;
 const Authentication_1 = require("./Middlewares/Authentication");
 const GameController_1 = require("./controllers/App/GameController");
+const Game_1 = require("./models/Game");
+const OngoingGame_1 = require("./models/OngoingGame");
 const server_1 = require("./server");
 const http = require('http'); // Require http module for creating HTTP server
 const express = require('express');
@@ -37,22 +39,30 @@ exports.io = socketIo(server, {
 });
 let gamedata = {};
 let setVarForInterval = 0;
-let gameInterval = null;
-var XInterval;
+let gameInterval = false;
+let XInterval;
 const xValueGet = () => __awaiter(void 0, void 0, void 0, function* () {
     setVarForInterval = 0;
     const sseId = new Date().toDateString();
     XInterval = setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
-        const xData = yield GameController_1.GameController.getXValue();
-        if (xData.data.timer == 1) {
-            console.log("timetimetimeritismnbdmb......?>>>>>", xData.data);
+        const ongoingGame = yield OngoingGame_1.default.findOne();
+        const currentGame = yield Game_1.default.findById(ongoingGame === null || ongoingGame === void 0 ? void 0 : ongoingGame.current_game);
+        const xData = yield GameController_1.GameController.getXValue(currentGame);
+        if ((currentGame === null || currentGame === void 0 ? void 0 : currentGame.end_time) < Date.now() && !gameInterval) {
+            gameInterval = true;
             clearInterval(XInterval);
             gameDataGet();
-            setTimeout(() => __awaiter(void 0, void 0, void 0, function* () { return yield xValueGet(); }), 10000);
+            setTimeout(() => __awaiter(void 0, void 0, void 0, function* () {
+                gameInterval = false,
+                    yield xValueGet();
+            }), 10000);
         }
-        if (xData.data.timer > 1) {
-            const checkAutoAPI = GameController_1.GameController.checkAutoBet(xData.data.timer);
+        else {
+            const checkAutoAPI = GameController_1.GameController.checkAutoBet(currentGame);
         }
+        // if(xData.data.timer>1){
+        // 	const checkAutoAPI = GameController.checkAutoBet(currentGame);
+        // }
         exports.io.emit('xValue', xData);
     }), 200);
     // await gameDataGet()

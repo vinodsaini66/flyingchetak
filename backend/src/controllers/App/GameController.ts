@@ -17,7 +17,7 @@ const { ObjectId } = require('mongodb');
 let timer = 1;
 let gameId = "";
 let secondCount = 0;
-const myArray = [120, 130, 145];
+const myArray = [5,7,8,9,6,10];
 const randomIndex = Math.floor(Math.random() * myArray.length);
 let randomItem = myArray[randomIndex];
 let isTimerPaused = false
@@ -290,12 +290,11 @@ export class GameController {
 	// end game and generate new game.
 	static async endGame(timerValue) {
 		try {
-			console.log("endGame==========>>>>>>>>>>>")
 			const myArray1 = [90, 60, 30, 40, 50];
 			const randomIndex1 = Math.floor(Math.random() * myArray.length);
 			 randomItem = myArray[randomIndex];
-			 secondCount =0;
-			//  timer = 1;
+			console.log("endGame==========>>>>>>>>>>>",randomItem)
+			
 			//  socketTokenMap.set("_id", undefined);
 			const ongoingGame = await OngoingGame.findOne();
 			const nextGame = await Game.findById(ongoingGame?.next_game);
@@ -364,10 +363,8 @@ export class GameController {
 			nextGame.end_time= Date.now()+(90*1000);
 			// nextGame.base_amount = (maxBet?.deposit_amount)?(maxBet?.deposit_amount):10;
 			await nextGame.save();
-
+			timer = 1;
 			await ongoingGame.save();
-			timer=1;
-
 			return true;
 		} catch (error) {
 			console.log(error);
@@ -399,10 +396,10 @@ export class GameController {
 	// };
 
 	
-	static withdrowalAutomatically=async(betId)=>{
+	static withdrowalAutomatically=async(betId,currentGame)=>{
 		console.log("withdrowalAutomatically============>>>>>>>>>>")
-		const ongoingGame = await OngoingGame.findOne();
-        const currentGame = await Game.findById(ongoingGame?.current_game);
+		// const ongoingGame = await OngoingGame.findOne();
+        // const currentGame = await Game.findById(ongoingGame?.current_game);
         const bet = await Bet.findById(betId);
         const gameTotal: number = currentGame?.base_amount;
         // const gameTotal: number =
@@ -427,6 +424,8 @@ export class GameController {
         const remaining: number = +gameTotal - +totalWithdrawAmount;
 		if (bet.deposit_amount > remaining) {
 			xInterValClear()
+			currentGame.end_time = Date.now()
+			currentGame.save()
             const gameEnd = await GameController.endGame(timer);
             if (!gameEnd) {
 				timer = 1
@@ -444,47 +443,39 @@ export class GameController {
 		return true;
 	} 
 
-	static checkAutoBet = async(xValue) => {
+	static checkAutoBet = async(currentGame) => {
 		
-		const ongoingGame = await OngoingGame.findOne();
-		const currentGame = await Game.findById(ongoingGame?.current_game);
+		// const ongoingGame = await OngoingGame.findOne();
+		// const currentGame = await Game.findById(ongoingGame?.current_game);
 		const allBets = await Bet.find({
 			game_id: currentGame._id,
 			betType: "Auto",
 			status: BetStatus.ACTIVE,
-			xValue: { $lte: xValue.toFixed(2) }
+			xValue: { $lte: timer.toFixed(2) }
 		}).populate([{ path: 'user_id' }]);
-		// console.log("checkcheckcheckcheck=======>>>>>",allBets)
-		// if(allBets.length>0){
-		// 	for (let i = 0; i < allBets.length; i++) {
-		// 		let check = await GameController.withdrowalAutomatically(allBets[i]._id);
-		// 		// console.log("checkcheckcheckcheck=======>>>>>",check)
-		// 		if (check === false) {
-		// 			break;
-		// 		}
-		// 	}
-		// }
+		console.log("timetimetimeritismnbdmb......?>>>>>",allBets)
 		if(allBets.length>0){
 			allBets.forEach(async(betsDetail, index) => {
-				await GameController.withdrowalAutomatically(betsDetail._id);
+				await GameController.withdrowalAutomatically(betsDetail._id,currentGame);
 			});
 		}
 		return true;
 	};
-	static async getXValue(): Promise<{
+	static async getXValue(nextGame): Promise<{
 		message: string;
 		status: boolean | number;
 		data: any;
 		error: any;
 	}> {
 		try {	
-			console.log("dandownItemrandomItem====>>>>",randomItem,secondCount)
-			secondCount++;
-					if(randomItem == secondCount){
+			// secondCount++;
+					if(nextGame?.end_time < Date.now() && !isTimerPaused){
+						isTimerPaused = true
 						// setTimeout(async() =>await GameController.endGame(timer), 10000);
 						const gameEnd = await GameController.endGame(timer);
 						timer = 1;
 					}else{
+						isTimerPaused = false
 						timer += 0.01
 					}
 					

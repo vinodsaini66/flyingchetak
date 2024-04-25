@@ -34,28 +34,37 @@ export const io = socketIo(server, {
 
 let gamedata = {}
 let setVarForInterval = 0
-let gameInterval = null
-var XInterval
+let gameInterval = false
+let XInterval
 
 const xValueGet = async () => {
 	setVarForInterval = 0
 	const sseId = new Date().toDateString();
 		XInterval = setInterval(async () => {
+		
+		const ongoingGame = await OngoingGame.findOne();
+		const currentGame = await Game.findById(ongoingGame?.current_game);
 		const xData: {
 			message: string;
 			status: boolean | number;
 			data: any;
 			error: any;
-		} = await GameController.getXValue();
-		if(xData.data.timer == 1 ){
-		console.log("timetimetimeritismnbdmb......?>>>>>",xData.data)
+		} = await GameController.getXValue(currentGame);
+		if( currentGame?.end_time < Date.now() && !gameInterval ){
+			gameInterval = true
 			clearInterval(XInterval);
 			gameDataGet()
-			setTimeout(async() =>await xValueGet(), 10000);
+			setTimeout(async()=>{
+				gameInterval = false,
+				await xValueGet() 
+			},10000);
 		}
-		if(xData.data.timer>1){
-			const checkAutoAPI = GameController.checkAutoBet(xData.data.timer);
+		else{
+			const checkAutoAPI = GameController.checkAutoBet(currentGame);
 		}
+		// if(xData.data.timer>1){
+		// 	const checkAutoAPI = GameController.checkAutoBet(currentGame);
+		// }
 		io.emit('xValue', xData);
 	},200);
 	
