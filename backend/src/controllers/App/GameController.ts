@@ -12,15 +12,16 @@ import Transaction, {
 } from '../../models/TransactionSetting';
 import AdminSetting from '../../models/AdminSetting';
 import * as express from 'express';
-import { xInterValClear } from '../..';
+import { io, xInterValClear } from '../..';
 const { ObjectId } = require('mongodb');
 let timer = 1;
 let gameId = "";
 let secondCount = 0;
-const myArray = [50, 150, 100];
+const myArray = [120, 130, 140];
 const randomIndex = Math.floor(Math.random() * myArray.length);
 let randomItem = myArray[randomIndex];
-const socketTokenMap = new Map();
+let isTimerPaused = false
+let currentTime
 export class GameController {
 	static async getGamePageData(req, res, next) {
 		console.log("getgamepagedata=========>>>>>>>>>..")
@@ -102,14 +103,14 @@ export class GameController {
 		}
 	}
 
-	static async bet(req, res, next) {
+	static async bet(payload,userId) {
 		console.log("bet==========>>>>>>>>>>>")
 		const startTime = new Date().getTime();
 		try {
-			const { amount,betType,boxType } = req.body;
-			const wallet = await Wallet.findOne({ userId: req.user.id });
+			const { amount,betType,boxType } = payload;
+			const wallet = await Wallet.findOne({ userId: userId });
 			const walletTransactionData = {
-				payee: req.user.id,
+				payee: userId,
 				receiver: Helper?.admin?._id, //adminId,
 				transaction_id: Helper.generateAlphaString(6),
 				amount: amount,
@@ -132,7 +133,7 @@ export class GameController {
 			// generate bet
 			const betData = {
 				game_id: nextGame?._id, //next game id
-				user_id: req.user.id,
+				user_id: userId,
 				status: BetStatus.ACTIVE,
 				deposit_amount: amount,
 				betType:betType,
@@ -156,42 +157,37 @@ export class GameController {
 				nextGame.commission_amount = updatedAdminCommission;
 
 				await nextGame.save();
-				console.log("bet===",bet);
+				const gameData: {
+					message: string;
+					status: boolean | number;
+					data: any;
+					error: any;
+				  } = await GameController.handleGame();
+				  io.emit('gameData', gameData);
+				return {message:"Your bet has been successfully placed!",status:true}
 			} else {
 				wallet.balance = +wallet.balance + +amount;
 				transaction.status = Status_Types.FAILED;
 				await transaction.save();
 				await wallet.save();
-				return _RS.api(
-					res,
-					false,
-					'Transaction Failed, Money is re added to your wallet',
-					{},
-					startTime
-				);
+				return {message:"Transaction failed!, Money is re added to your wallet",status:false}
+				
 			}
-
-			return _RS.api(
-				res,
-				true,
-				'Bet Successfully Submitted',
-				{ transaction, wallet },
-				startTime
-			);
 		} catch (error) {
-			next(error);
+			return {message:"Transaction failed!, Some error occurs",status:false}
+			// next(error);
 		}
 	}
 
 	// auto bet 
-	static async autoBet(req, res, next) {
+	static async autoBet(payload,userId) {
 		console.log("autoBet==========>>>>>>>>>>>")
 		const startTime = new Date().getTime();
 		try {
-			const { amount,xValue,boxType,betType } = req.body;
-			const wallet = await Wallet.findOne({ userId: req.user.id });
+			const { amount,xValue,boxType,betType } = payload;
+			const wallet = await Wallet.findOne({ userId: userId });
 			const walletTransactionData = {
-				payee: req.user.id,
+				payee: userId,
 				receiver: Helper?.admin?._id, //adminId,
 				transaction_id: Helper.generateAlphaString(6),
 				amount: amount,
@@ -216,7 +212,7 @@ export class GameController {
 			// generate bet
 			const betData = {
 				game_id: nextGame?._id, //next game id
-				user_id: req.user.id,
+				user_id: userId,
 				status: BetStatus.ACTIVE,
 				deposit_amount: amount*xValue,
 				xValue:xValue,
@@ -241,30 +237,32 @@ export class GameController {
 				nextGame.commission_amount = updatedAdminCommission;
 	
 				await nextGame.save();
-				console.log("bet===",bet);
 			} else {
 				wallet.balance = +wallet.balance + +amount;
 				transaction.status = Status_Types.FAILED;
 				await transaction.save();
 				await wallet.save();
-				return _RS.api(
-					res,
-					false,
-					'Transaction Failed, Money is re added to your wallet',
-					{},
-					startTime
-				);
+				return {message:"Transaction Failed, Money is re added to your wallet",status:false}
+				// return _RS.api(
+				// 	res,
+				// 	false,
+				// 	'Transaction Failed, Money is re added to your wallet',
+				// 	{},
+				// 	startTime
+				// );
 			}
+			return {message:"Your bet has been successfully placed!",status:true}
 	
-			return _RS.api(
-				res,
-				true,
-				'Bet Successfully Submitted',
-				{ transaction, wallet },
-				startTime
-			);
+			// return _RS.api(
+			// 	res,
+			// 	true,
+			// 	'Bet Successfully Submitted',
+			// 	{ transaction, wallet },
+			// 	startTime
+			// );
 		} catch (error) {
-			next(error);
+			return {message:"Transaction failed!, Some error occurs",status:false}
+			// next(error);
 		}
 	}
 	// auto bet end function
@@ -456,26 +454,23 @@ export class GameController {
 			status: BetStatus.ACTIVE,
 			xValue: { $lte: xValue.toFixed(2) }
 		}).populate([{ path: 'user_id' }]);
+		// console.log("checkcheckcheckcheck=======>>>>>",allBets)
 		// if(allBets.length>0){
 		// 	for (let i = 0; i < allBets.length; i++) {
 		// 		let check = await GameController.withdrowalAutomatically(allBets[i]._id);
-		// 		console.log("checkcheckcheckcheck=======>>>>>",check)
+		// 		// console.log("checkcheckcheckcheck=======>>>>>",check)
 		// 		if (check === false) {
 		// 			break;
 		// 		}
 		// 	}
-			
 		// }
-		console.log("allBetsallBets======>>>>>>>",allBets,xValue)
 		if(allBets.length>0){
 			allBets.forEach(async(betsDetail, index) => {
 				await GameController.withdrowalAutomatically(betsDetail._id);
 			});
-		// const gameEnd = await GameController.endGame(timer);
 		}
 		return true;
 	};
-	
 	static async getXValue(): Promise<{
 		message: string;
 		status: boolean | number;
@@ -483,6 +478,7 @@ export class GameController {
 		error: any;
 	}> {
 		try {	
+			console.log("dandownItemrandomItem====>>>>",randomItem,secondCount)
 			secondCount++;
 					if(randomItem == secondCount){
 						// setTimeout(async() =>await GameController.endGame(timer), 10000);
@@ -491,16 +487,7 @@ export class GameController {
 					}else{
 						timer += 0.01
 					}
-					if(timer == 1){
-						return {
-							status: true,
-							message: 'Up Get Successfully',
-							data: {
-								timer
-							},
-							error: null,
-						};
-					}
+					
 					
 				// }
 				return {
@@ -594,7 +581,7 @@ export class GameController {
 						fallrate,
 						allBets,
 						is_game_end: false,
-						timer:timer
+						// timer:timer
 					},
 					error: null,
 				};
@@ -608,16 +595,15 @@ export class GameController {
 		}
 	}
 
-	static async handleWithdrawRequest(req, res, next) {
-		console.log("handleWithdrawRequest=======>>>>>>>>>")
+	static async handleWithdrawRequest(payloads) {
 		const startTime = new Date().getTime();
 		try {
 			const ongoingGame = await OngoingGame.findOne();
 			const currentGame = await Game.findById(ongoingGame?.current_game);
 
-			const betId = req.params.id;
+			// const betId = req.params.id;
+			const { requestedAmount,xValue,betId } = payloads
 			const bet = await Bet.findById(betId);
-			const { requestedAmount,xValue } = req.body;
 
 			const gameTotal: number = currentGame?.base_amount;
 			// const gameTotal: number =
@@ -639,25 +625,22 @@ export class GameController {
 					},
 				},
 			]);
-			console.log("handleWithdrawRequest1")
-
 			const totalWithdrawAmount: number =
 				result.length > 0 ? result[0].totalWithdrawAmount : 0;
 
 			const remaining: number = +gameTotal - +totalWithdrawAmount;
-			console.log("handleWithdrawRequest2")
 
 			if (requestedAmount > remaining) {
 				xInterValClear()
 				const gameEnd = await GameController.endGame(timer);
 				if (!gameEnd) {
-					return _RS.api(res, false, 'Request Failed', {}, startTime);
+					return {message:"Transaction failed!, Game ended",status:false}
 				}
 				bet.status = BetStatus.COMPLETED;
 				await bet.save();
 				
 
-				return _RS.api(res, false, 'Game Ended', {}, startTime);
+				return {message:"Transaction failed!, Game ended",status:false}
 			}
 			const walletupdate = await Wallet.updateOne({
 				userId: bet.user_id
@@ -672,11 +655,18 @@ export class GameController {
 			bet.status = BetStatus.PLACED;
 			bet.xValue = xValue
 			await bet.save();
-
-			return _RS.api(res, true, 'Bet Win', bet, startTime);
+			const gameData: {
+				message: string;
+				status: boolean | number;
+				data: any;
+				error: any;
+			  } = await GameController.handleGame();
+			io.emit('gameData', gameData);
+			return {message:`Bet win amount ${requestedAmount}`,status:true}
+			// return _RS.api(res, true, 'Bet Win', bet, startTime);
 		} catch (error) {
-		console.log("handleWithdrawRequest5")
-			next(error);
+			return {message:"Transaction failed!, Some error occurs",status:false}
+			// next(error);
 		}
 	}
 

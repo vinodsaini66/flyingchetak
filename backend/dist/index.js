@@ -9,11 +9,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.xInterValClear = void 0;
+exports.xInterValClear = exports.io = void 0;
+const Authentication_1 = require("./Middlewares/Authentication");
 const GameController_1 = require("./controllers/App/GameController");
 const server_1 = require("./server");
 const http = require('http'); // Require http module for creating HTTP server
 const express = require('express');
+const NextFunction = require("express");
 const socketIo = require('socket.io');
 const app = express();
 const server = http.createServer(new server_1.Server().app); // Create HTTP server using Express app
@@ -23,7 +25,7 @@ app.use(cors({
     origin: true,
     credentials: true,
 }));
-const io = socketIo(server, {
+exports.io = socketIo(server, {
     cors: {
         // origin: "http://localhost:3000",
         // origin:"http://34.123.238.205",
@@ -35,15 +37,15 @@ const io = socketIo(server, {
 });
 let gamedata = {};
 let setVarForInterval = 0;
+let gameInterval = null;
 var XInterval;
-// cron.schedule('05 23 * * *', async() => {
 const xValueGet = () => __awaiter(void 0, void 0, void 0, function* () {
     setVarForInterval = 0;
     const sseId = new Date().toDateString();
     XInterval = setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
         const xData = yield GameController_1.GameController.getXValue();
-        // console.log("timetimetimeritismnbdmb......?>>>>>",xData.data)
         if (xData.data.timer == 1) {
+            console.log("timetimetimeritismnbdmb......?>>>>>", xData.data);
             clearInterval(XInterval);
             gameDataGet();
             setTimeout(() => __awaiter(void 0, void 0, void 0, function* () { return yield xValueGet(); }), 10000);
@@ -51,9 +53,9 @@ const xValueGet = () => __awaiter(void 0, void 0, void 0, function* () {
         if (xData.data.timer > 1) {
             const checkAutoAPI = GameController_1.GameController.checkAutoBet(xData.data.timer);
         }
-        io.emit('xValue', xData);
+        exports.io.emit('xValue', xData);
     }), 200);
-    gameDataGet();
+    // await gameDataGet()
 });
 const gameDataGet = () => __awaiter(void 0, void 0, void 0, function* () {
     var gameInterval = setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
@@ -62,7 +64,7 @@ const gameDataGet = () => __awaiter(void 0, void 0, void 0, function* () {
         if (gameData.data.timer > 1) {
             clearInterval(gameInterval);
         }
-        io.emit('gameData', gameData);
+        exports.io.emit('gameData', gameData);
     }), 1000);
 });
 const xInterValClear = () => __awaiter(void 0, void 0, void 0, function* () {
@@ -74,7 +76,7 @@ const xInterValClear = () => __awaiter(void 0, void 0, void 0, function* () {
     if (setVarForInterval === 0) {
         setVarForInterval += 1;
         gameDataGet();
-        io.emit('xValue', xData);
+        exports.io.emit('xValue', xData);
         setTimeout(() => __awaiter(void 0, void 0, void 0, function* () { return yield xValueGet(); }), 10000);
     }
     // setTimeout(function(){
@@ -94,11 +96,43 @@ const xInterValClear = () => __awaiter(void 0, void 0, void 0, function* () {
     // }
 });
 exports.xInterValClear = xInterValClear;
-io.on('connection', (socket) => __awaiter(void 0, void 0, void 0, function* () {
+exports.io.on('connection', (socket) => __awaiter(void 0, void 0, void 0, function* () {
     // console.log('New user connected',socket.handshake.auth.token);
     const { token } = socket.handshake.auth;
     const gameData = yield GameController_1.GameController.handleGame();
+    if (token) {
+        var userId = yield Authentication_1.default.socketAuth(token);
+        userId && socket.join(userId);
+    }
     socket.emit('gameData', gameData);
+    socket.on("withdrawal", (payloads) => __awaiter(void 0, void 0, void 0, function* () {
+        console.log("payloadpayload=========>>>", payloads);
+        const withdRes = yield GameController_1.GameController.handleWithdrawRequest(payloads);
+        if (withdRes.status) {
+            exports.io.to(userId).emit('WithdrawalPlaced', withdRes);
+        }
+        else {
+            exports.io.to(userId).emit('WithdrawalPlaced', withdRes);
+        }
+    }));
+    socket.on('placeBet', (payload) => __awaiter(void 0, void 0, void 0, function* () {
+        const betRes = yield GameController_1.GameController.bet(payload, userId);
+        if (betRes.status) {
+            exports.io.to(userId).emit('betPlaced', betRes);
+        }
+        else {
+            exports.io.to(userId).emit('betPlaced', betRes);
+        }
+    }));
+    socket.on('placeAutoBet', (payload) => __awaiter(void 0, void 0, void 0, function* () {
+        const betRes = yield GameController_1.GameController.autoBet(payload, userId);
+        if (betRes.status) {
+            exports.io.to(userId).emit('autoBetPlaced', betRes);
+        }
+        else {
+            exports.io.to(userId).emit('autoBetPlaced', betRes);
+        }
+    }));
     socket.on('disconnect', () => {
         console.log('User disconnected');
     });

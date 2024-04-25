@@ -14,11 +14,11 @@ class GameRoutes {
 
 	public post() {
 		this.router.post('/deposit', Authentication.user, GameController.bet);
-		this.router.post(
-			'/withdraw/:id',
-			Authentication.user,
-			GameController.handleWithdrawRequest
-		);
+		// this.router.post(
+		// 	'/withdraw/:id',
+		// 	Authentication.user,
+		// 	GameController.handleWithdrawRequest
+		// );
 		this.router.post('/autoBet', Authentication.user, GameController.autoBet);
 	}
 

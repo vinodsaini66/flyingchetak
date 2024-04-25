@@ -24,10 +24,11 @@ const { ObjectId } = require('mongodb');
 let timer = 1;
 let gameId = "";
 let secondCount = 0;
-const myArray = [50, 150, 100];
+const myArray = [120, 130, 140];
 const randomIndex = Math.floor(Math.random() * myArray.length);
 let randomItem = myArray[randomIndex];
-const socketTokenMap = new Map();
+let isTimerPaused = false;
+let currentTime;
 class GameController {
     static getGamePageData(req, res, next) {
         var _b, _c, _d;
@@ -86,16 +87,16 @@ class GameController {
             }
         });
     }
-    static bet(req, res, next) {
+    static bet(payload, userId) {
         var _b;
         return __awaiter(this, void 0, void 0, function* () {
             console.log("bet==========>>>>>>>>>>>");
             const startTime = new Date().getTime();
             try {
-                const { amount, betType, boxType } = req.body;
-                const wallet = yield WalletSettings_1.default.findOne({ userId: req.user.id });
+                const { amount, betType, boxType } = payload;
+                const wallet = yield WalletSettings_1.default.findOne({ userId: userId });
                 const walletTransactionData = {
-                    payee: req.user.id,
+                    payee: userId,
                     receiver: (_b = Helper_1.default === null || Helper_1.default === void 0 ? void 0 : Helper_1.default.admin) === null || _b === void 0 ? void 0 : _b._id,
                     transaction_id: Helper_1.default.generateAlphaString(6),
                     amount: amount,
@@ -115,7 +116,7 @@ class GameController {
                 // generate bet
                 const betData = {
                     game_id: nextGame === null || nextGame === void 0 ? void 0 : nextGame._id,
-                    user_id: req.user.id,
+                    user_id: userId,
                     status: Bet_1.BetStatus.ACTIVE,
                     deposit_amount: amount,
                     betType: betType,
@@ -134,33 +135,35 @@ class GameController {
                     nextGame.total_deposit = newAmount;
                     nextGame.commission_amount = updatedAdminCommission;
                     yield nextGame.save();
-                    console.log("bet===", bet);
+                    const gameData = yield GameController.handleGame();
+                    __1.io.emit('gameData', gameData);
+                    return { message: "Your bet has been successfully placed!", status: true };
                 }
                 else {
                     wallet.balance = +wallet.balance + +amount;
                     transaction.status = TransactionSetting_1.Status_Types.FAILED;
                     yield transaction.save();
                     yield wallet.save();
-                    return ResponseHelper_1.default.api(res, false, 'Transaction Failed, Money is re added to your wallet', {}, startTime);
+                    return { message: "Transaction failed!, Money is re added to your wallet", status: false };
                 }
-                return ResponseHelper_1.default.api(res, true, 'Bet Successfully Submitted', { transaction, wallet }, startTime);
             }
             catch (error) {
-                next(error);
+                return { message: "Transaction failed!, Some error occurs", status: false };
+                // next(error);
             }
         });
     }
     // auto bet 
-    static autoBet(req, res, next) {
+    static autoBet(payload, userId) {
         var _b;
         return __awaiter(this, void 0, void 0, function* () {
             console.log("autoBet==========>>>>>>>>>>>");
             const startTime = new Date().getTime();
             try {
-                const { amount, xValue, boxType, betType } = req.body;
-                const wallet = yield WalletSettings_1.default.findOne({ userId: req.user.id });
+                const { amount, xValue, boxType, betType } = payload;
+                const wallet = yield WalletSettings_1.default.findOne({ userId: userId });
                 const walletTransactionData = {
-                    payee: req.user.id,
+                    payee: userId,
                     receiver: (_b = Helper_1.default === null || Helper_1.default === void 0 ? void 0 : Helper_1.default.admin) === null || _b === void 0 ? void 0 : _b._id,
                     transaction_id: Helper_1.default.generateAlphaString(6),
                     amount: amount,
@@ -182,7 +185,7 @@ class GameController {
                 // generate bet
                 const betData = {
                     game_id: nextGame === null || nextGame === void 0 ? void 0 : nextGame._id,
-                    user_id: req.user.id,
+                    user_id: userId,
                     status: Bet_1.BetStatus.ACTIVE,
                     deposit_amount: amount * xValue,
                     xValue: xValue,
@@ -202,19 +205,33 @@ class GameController {
                     nextGame.total_deposit = newAmount;
                     nextGame.commission_amount = updatedAdminCommission;
                     yield nextGame.save();
-                    console.log("bet===", bet);
                 }
                 else {
                     wallet.balance = +wallet.balance + +amount;
                     transaction.status = TransactionSetting_1.Status_Types.FAILED;
                     yield transaction.save();
                     yield wallet.save();
-                    return ResponseHelper_1.default.api(res, false, 'Transaction Failed, Money is re added to your wallet', {}, startTime);
+                    return { message: "Transaction Failed, Money is re added to your wallet", status: false };
+                    // return _RS.api(
+                    // 	res,
+                    // 	false,
+                    // 	'Transaction Failed, Money is re added to your wallet',
+                    // 	{},
+                    // 	startTime
+                    // );
                 }
-                return ResponseHelper_1.default.api(res, true, 'Bet Successfully Submitted', { transaction, wallet }, startTime);
+                return { message: "Your bet has been successfully placed!", status: true };
+                // return _RS.api(
+                // 	res,
+                // 	true,
+                // 	'Bet Successfully Submitted',
+                // 	{ transaction, wallet },
+                // 	startTime
+                // );
             }
             catch (error) {
-                next(error);
+                return { message: "Transaction failed!, Some error occurs", status: false };
+                // next(error);
             }
         });
     }
@@ -308,6 +325,7 @@ class GameController {
     static getXValue() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                console.log("dandownItemrandomItem====>>>>", randomItem, secondCount);
                 secondCount++;
                 if (randomItem == secondCount) {
                     // setTimeout(async() =>await GameController.endGame(timer), 10000);
@@ -316,16 +334,6 @@ class GameController {
                 }
                 else {
                     timer += 0.01;
-                }
-                if (timer == 1) {
-                    return {
-                        status: true,
-                        message: 'Up Get Successfully',
-                        data: {
-                            timer
-                        },
-                        error: null,
-                    };
                 }
                 // }
                 return {
@@ -404,7 +412,7 @@ class GameController {
                         fallrate,
                         allBets,
                         is_game_end: false,
-                        timer: timer
+                        // timer:timer
                     },
                     error: null,
                 };
@@ -419,16 +427,15 @@ class GameController {
             }
         });
     }
-    static handleWithdrawRequest(req, res, next) {
+    static handleWithdrawRequest(payloads) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log("handleWithdrawRequest=======>>>>>>>>>");
             const startTime = new Date().getTime();
             try {
                 const ongoingGame = yield OngoingGame_1.default.findOne();
                 const currentGame = yield Game_1.default.findById(ongoingGame === null || ongoingGame === void 0 ? void 0 : ongoingGame.current_game);
-                const betId = req.params.id;
+                // const betId = req.params.id;
+                const { requestedAmount, xValue, betId } = payloads;
                 const bet = yield Bet_1.default.findById(betId);
-                const { requestedAmount, xValue } = req.body;
                 const gameTotal = currentGame === null || currentGame === void 0 ? void 0 : currentGame.base_amount;
                 // const gameTotal: number =
                 // 	Math.round(
@@ -448,19 +455,17 @@ class GameController {
                         },
                     },
                 ]);
-                console.log("handleWithdrawRequest1");
                 const totalWithdrawAmount = result.length > 0 ? result[0].totalWithdrawAmount : 0;
                 const remaining = +gameTotal - +totalWithdrawAmount;
-                console.log("handleWithdrawRequest2");
                 if (requestedAmount > remaining) {
                     (0, __1.xInterValClear)();
                     const gameEnd = yield GameController.endGame(timer);
                     if (!gameEnd) {
-                        return ResponseHelper_1.default.api(res, false, 'Request Failed', {}, startTime);
+                        return { message: "Transaction failed!, Game ended", status: false };
                     }
                     bet.status = Bet_1.BetStatus.COMPLETED;
                     yield bet.save();
-                    return ResponseHelper_1.default.api(res, false, 'Game Ended', {}, startTime);
+                    return { message: "Transaction failed!, Game ended", status: false };
                 }
                 const walletupdate = yield WalletSettings_1.default.updateOne({
                     userId: bet.user_id
@@ -475,11 +480,14 @@ class GameController {
                 bet.status = Bet_1.BetStatus.PLACED;
                 bet.xValue = xValue;
                 yield bet.save();
-                return ResponseHelper_1.default.api(res, true, 'Bet Win', bet, startTime);
+                const gameData = yield GameController.handleGame();
+                __1.io.emit('gameData', gameData);
+                return { message: `Bet win amount ${requestedAmount}`, status: true };
+                // return _RS.api(res, true, 'Bet Win', bet, startTime);
             }
             catch (error) {
-                console.log("handleWithdrawRequest5");
-                next(error);
+                return { message: "Transaction failed!, Some error occurs", status: false };
+                // next(error);
             }
         });
     }
@@ -599,21 +607,20 @@ GameController.checkAutoBet = (xValue) => __awaiter(void 0, void 0, void 0, func
         status: Bet_1.BetStatus.ACTIVE,
         xValue: { $lte: xValue.toFixed(2) }
     }).populate([{ path: 'user_id' }]);
+    // console.log("checkcheckcheckcheck=======>>>>>",allBets)
     // if(allBets.length>0){
     // 	for (let i = 0; i < allBets.length; i++) {
     // 		let check = await GameController.withdrowalAutomatically(allBets[i]._id);
-    // 		console.log("checkcheckcheckcheck=======>>>>>",check)
+    // 		// console.log("checkcheckcheckcheck=======>>>>>",check)
     // 		if (check === false) {
     // 			break;
     // 		}
     // 	}
     // }
-    console.log("allBetsallBets======>>>>>>>", allBets, xValue);
     if (allBets.length > 0) {
         allBets.forEach((betsDetail, index) => __awaiter(void 0, void 0, void 0, function* () {
             yield GameController.withdrowalAutomatically(betsDetail._id);
         }));
-        // const gameEnd = await GameController.endGame(timer);
     }
     return true;
 });

@@ -6,11 +6,7 @@ import useRequest from './useRequest';
 import io from 'socket.io-client';
 import { WalletContext } from '../context/WalletContext';
 import { AuthContext } from '../context/AuthContext';
-const socket = io(baseURL,{
-	auth: {
-	  token: localStorage.getItem("token"),
-	},
-  });
+import { socket } from '../context/SocketContext';
 
 const useGame = () => {
 	const [gameData, setGameData] = useState<any>();
@@ -169,6 +165,9 @@ const useGame = () => {
 				betType:betData.betType,
 				amount:betData.amount
 			}
+			socket.emit("placeBet",payload)
+			return 
+
 			request({
 				url: apiPath.gameDeposit,
 				method: 'POST',
@@ -199,6 +198,8 @@ const useGame = () => {
 				amount:betData.amount,
 				xValue:betData.x
 			}
+			socket.emit("placeAutoBet",payload)
+			return false
 			request({
 				url: apiPath.gameAutoDeposite,
 				method: 'POST',
@@ -227,8 +228,11 @@ const useGame = () => {
 	}) => {
 		let requestedAmount = {
 			requestedAmount:amount,
-			xValue:xVal
+			xValue:xVal,
+			betId:betId
 		}
+		socket.emit("withdrawal",requestedAmount)
+		return 
 		request({
 			url: apiPath.gameWithdraw + '/' + betId,
 			method: 'POST',

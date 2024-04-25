@@ -61,29 +61,23 @@ class Authentication {
             }
         });
     }
-    static eventAuth(req, res, next, token) {
+    static socketAuth(token) {
         return __awaiter(this, void 0, void 0, function* () {
             const startTime = new Date().getTime();
             try {
-                const decoded = yield Auth_1.default.decodeJwt(token.token);
+                const decoded = yield Auth_1.default.decodeJwt(token);
                 const currentUser = yield User_1.default.findOne({
                     _id: decoded._id,
                     type: user_type_enum_1.USER_TYPE.customer,
                 });
                 console.log("tokentokentokentoken", decoded);
                 if (!currentUser) {
-                    return ResponseHelper_1.default.api(res, false, "User doesn't exists with us", currentUser, startTime);
-                }
-                if (!currentUser.is_active) {
-                    return ResponseHelper_1.default.api(res, false, 'Account deactivated, Please contact to admin', {}, startTime);
-                }
-                if (currentUser.is_delete) {
-                    return ResponseHelper_1.default.api(res, false, 'This Account has been deleted', {}, startTime);
+                    return false;
                 }
                 return decoded._id;
             }
             catch (err) {
-                return next(err);
+                // return next(err);
             }
         });
     }

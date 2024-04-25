@@ -39,7 +39,7 @@ export const Main = () => {
 	let secondBoxBet = bet2 && JSON.parse(bet2)
 
 	const [form] = Form.useForm();
-	console.log("userCurrentBetsuserCurrentBets===>>>",firstBoxFutureBet,secondBoxFutureBet)
+	console.log("userCurrentBetsuserCurrentBets===>>>",userCurrentBets)
 
 	const formWatchedValues = Form.useWatch([], form);
 	// useEffect(()=>{
@@ -52,6 +52,7 @@ export const Main = () => {
 			audioRef?.current?.play();
 		  }
 	  };
+
 
 	const handleDepositFormSubmit = (amount: number,type:string,betType:string) => {
 		let betConfig:any = {

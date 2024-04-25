@@ -3,8 +3,9 @@ import { createContext, useEffect, useState } from "react"
 import {  baseURL } from '../constant/ApiRoutes';
 import io from 'socket.io-client';
 import useGame from "../hooks/useGame";
+import { Severty, ShowToast } from "../helper/toast";
 
-const socket = io(baseURL,{
+export const socket = io(baseURL,{
 	auth: {
 	  token: localStorage.getItem("token"),
 	},
@@ -31,6 +32,7 @@ export const SocketProvider = ({children}:any) => {
         handleDeposit,handleAutoDeposit
     } = useGame();
 
+ 
 
 
         useEffect(() => { 
@@ -39,18 +41,47 @@ export const SocketProvider = ({children}:any) => {
                 console.log('connected:',val)
             })  
             socket.on('xValue',(data:any)=>{
+                console.log("xvalue>>>>>>>>>>>>>",data?.data)
                 setIsLoading(false)
                 if (data?.data?.timer>1) {
                     setX(data.data.timer);
                     setIsGameEnd(false);
                 }
                 else{
+                    // setX(data.data.timer);
+                    // setIsGameEnd(true);
                     setTimeout(()=>{setIsGameEnd(true)},4000);
                     setTimeout(()=>{setX(data.data.timer)},4000);
                             
                 }
+            }) 
+            socket.on("betPlaced",(response)=>{
+                console.log("socketsocket===>>>betPlaced",response)
+                if(response.status){
+                    ShowToast(response.message, Severty.SUCCESS);
+                }
+                else{
+                    ShowToast(response.message, Severty.ERROR);
+                }
             })
-                
+            socket.on("WithdrawalPlaced",(response)=>{
+                console.log("socketsocket===>>>WithdrawalPlaced",response)
+                if(response.status){
+                    ShowToast(response.message, Severty.SUCCESS);
+                }
+                else{
+                    ShowToast(response.message, Severty.ERROR);
+                }
+            })
+            socket.on("autoBetPlaced",(response)=>{
+                console.log("socketsocket===>>>autoBetPlaced",response)
+                if(response.status){
+                    ShowToast(response.message, Severty.SUCCESS);
+                }
+                else{
+                    ShowToast(response.message, Severty.ERROR);
+                }
+            })
                 socket.on("gameData",(gameData:any)=>{
                     const userId = localStorage.getItem("userId")
                     let data = gameData?.data?.allBets?.filter((item:any,i:number)=>{return item?.user_id?._id == userId});
@@ -64,10 +95,6 @@ export const SocketProvider = ({children}:any) => {
                           }
                           return 0;
                         });
-                    }
-                    if(data){
-                        // setFirstBoxFutureBet({})
-                        // setSecondBoxFutureBet({})
                     }
                     
                     setUserCurrentBets(data)

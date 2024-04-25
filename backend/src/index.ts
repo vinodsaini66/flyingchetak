@@ -5,6 +5,7 @@ import OngoingGame from './models/OngoingGame';
 import { Server } from './server';
 const http = require('http'); // Require http module for creating HTTP server
 const express = require('express');
+const NextFunction = require("express")
 const socketIo = require('socket.io');
 import * as cron from 'node-cron';
 
@@ -19,7 +20,7 @@ app.use(cors({
   credentials: true,
 }));
 
-const io = socketIo(server, {
+export const io = socketIo(server, {
   cors: {
     // origin: "http://localhost:3000",
 	// origin:"http://34.123.238.205",
@@ -33,32 +34,34 @@ const io = socketIo(server, {
 
 let gamedata = {}
 let setVarForInterval = 0
+let gameInterval = null
 var XInterval
-// cron.schedule('05 23 * * *', async() => {
-	const xValueGet = async () => {
-		setVarForInterval = 0
-		const sseId = new Date().toDateString();
-			XInterval = setInterval(async () => {
-			const xData: {
-				message: string;
-				status: boolean | number;
-				data: any;
-				error: any;
-			} = await GameController.getXValue();
-			// console.log("timetimetimeritismnbdmb......?>>>>>",xData.data)
-			if(xData.data.timer == 1 ){
-				clearInterval(XInterval);
-				gameDataGet()
-				setTimeout(async() =>await xValueGet(), 10000);
-			}
-			if(xData.data.timer>1){
-				const checkAutoAPI = GameController.checkAutoBet(xData.data.timer);
-			}
-			io.emit('xValue', xData);
-		},200);
-		
-	gameDataGet()
-	}
+
+const xValueGet = async () => {
+	setVarForInterval = 0
+	const sseId = new Date().toDateString();
+		XInterval = setInterval(async () => {
+		const xData: {
+			message: string;
+			status: boolean | number;
+			data: any;
+			error: any;
+		} = await GameController.getXValue();
+		if(xData.data.timer == 1 ){
+		console.log("timetimetimeritismnbdmb......?>>>>>",xData.data)
+			clearInterval(XInterval);
+			gameDataGet()
+			setTimeout(async() =>await xValueGet(), 10000);
+		}
+		if(xData.data.timer>1){
+			const checkAutoAPI = GameController.checkAutoBet(xData.data.timer);
+		}
+		io.emit('xValue', xData);
+	},200);
+	
+	// await gameDataGet()
+}
+
 	const gameDataGet = async () => {
 		var gameInterval = setInterval(async()=>{
 						const gameData: {
@@ -114,9 +117,45 @@ var XInterval
 			data: any;
 			error: any;
 		  } = await GameController.handleGame();
-
+		  if(token){
+			var userId = await Authentication.socketAuth(token)
+            userId && socket.join(userId);
+		  }
+		 
 		socket.emit('gameData', gameData);
+		socket.on("withdrawal",async(payloads)=>{
+			console.log("payloadpayload=========>>>",payloads)
+			const withdRes = await GameController.handleWithdrawRequest(payloads)
+			if(withdRes.status){
+				io.to(userId).emit('WithdrawalPlaced',withdRes);
+			}
+			else{
+				io.to(userId).emit('WithdrawalPlaced', withdRes);
+			}
+			
+		})
 		
+		socket.on('placeBet', async(payload) => {
+			const betRes = await GameController.bet(payload,userId)
+			if(betRes.status){
+				io.to(userId).emit('betPlaced',betRes);
+			}
+			else{
+				io.to(userId).emit('betPlaced', betRes);
+			}
+
+		});
+		socket.on('placeAutoBet', async(payload) => {
+			const betRes = await GameController.autoBet(payload,userId)
+			if(betRes.status){
+				io.to(userId).emit('autoBetPlaced', betRes);
+			}
+			else{
+				io.to(userId).emit('autoBetPlaced', betRes);
+			}
+
+		});
+
 	    socket.on('disconnect', () => {
     	  console.log('User disconnected');
     	});
