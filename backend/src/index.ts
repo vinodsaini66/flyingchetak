@@ -8,6 +8,8 @@ const express = require('express');
 const NextFunction = require("express")
 const socketIo = require('socket.io');
 import * as cron from 'node-cron';
+const redis = require('redis');
+const client = redis.createClient();
 
 const app = express();
 const server = http.createServer(new Server().app); // Create HTTP server using Express app
@@ -32,18 +34,41 @@ export const io = socketIo(server, {
 });
 
 
-let gamedata = {}
+let redisResult = {}
 let setVarForInterval = 0
 let gameInterval = false
 let XInterval
+let currentGame
 
 const xValueGet = async () => {
 	setVarForInterval = 0
 	const sseId = new Date().toDateString();
 		XInterval = setInterval(async () => {
-		
-		const ongoingGame = await OngoingGame.findOne();
-		const currentGame = await Game.findById(ongoingGame?.current_game);
+			// if(!currentGame){
+			// 		const ongoingGame = await OngoingGame.findOne();
+			// 		currentGame = await Game.findById(ongoingGame?.current_game);
+			// 	client.set('current_game',currentGame, async(err, reply) => {
+			// 		if (err) {
+			// 			console.error(err);
+			// 		} else {
+			// 			console.error(reply);
+			// 		}
+			// 	});
+			// }
+			// else{
+			// 	client.get('current_game', async(err, reply) => {
+			// 		if (err) {
+			// 			console.error(err);
+			// 		} else {
+			// 			const deserializedResult = JSON.parse(reply);
+			// 			console.log('Retrieved Result:', deserializedResult);
+			// 			// Now you can use `deserializedResult` in your application
+			// 		}
+			// 	});
+			// }
+						const ongoingGame = await OngoingGame.findOne();
+						const	currentGame = await Game.findById(ongoingGame?.current_game);
+
 		const xData: {
 			message: string;
 			status: boolean | number;

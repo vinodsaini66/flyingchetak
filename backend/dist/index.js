@@ -19,6 +19,8 @@ const http = require('http'); // Require http module for creating HTTP server
 const express = require('express');
 const NextFunction = require("express");
 const socketIo = require('socket.io');
+const redis = require('redis');
+const client = redis.createClient();
 const app = express();
 const server = http.createServer(new server_1.Server().app); // Create HTTP server using Express app
 const port = process.env.PORT || 8002;
@@ -37,14 +39,37 @@ exports.io = socketIo(server, {
         credentials: true
     }
 });
-let gamedata = {};
+let redisResult = {};
 let setVarForInterval = 0;
 let gameInterval = false;
 let XInterval;
+let currentGame;
 const xValueGet = () => __awaiter(void 0, void 0, void 0, function* () {
     setVarForInterval = 0;
     const sseId = new Date().toDateString();
     XInterval = setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
+        // if(!currentGame){
+        // 		const ongoingGame = await OngoingGame.findOne();
+        // 		currentGame = await Game.findById(ongoingGame?.current_game);
+        // 	client.set('current_game',currentGame, async(err, reply) => {
+        // 		if (err) {
+        // 			console.error(err);
+        // 		} else {
+        // 			console.error(reply);
+        // 		}
+        // 	});
+        // }
+        // else{
+        // 	client.get('current_game', async(err, reply) => {
+        // 		if (err) {
+        // 			console.error(err);
+        // 		} else {
+        // 			const deserializedResult = JSON.parse(reply);
+        // 			console.log('Retrieved Result:', deserializedResult);
+        // 			// Now you can use `deserializedResult` in your application
+        // 		}
+        // 	});
+        // }
         const ongoingGame = yield OngoingGame_1.default.findOne();
         const currentGame = yield Game_1.default.findById(ongoingGame === null || ongoingGame === void 0 ? void 0 : ongoingGame.current_game);
         const xData = yield GameController_1.GameController.getXValue(currentGame);
