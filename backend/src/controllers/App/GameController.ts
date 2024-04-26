@@ -469,8 +469,8 @@ export class GameController {
 	}> {
 		try {	
 			// secondCount++;
-					if(currentGame?.end_time < Date.now() && !currentGame.is_game_end && !isTimerPaused ){
 			console.log("getXvalue========>>>>>>>>>>>>>",currentGame.is_game_end,isTimerPaused)
+					if(currentGame?.end_time < Date.now() && !currentGame.is_game_end && !isTimerPaused ){
 						isTimerPaused = true
 						currentGame.end_time = Date.now()
 						currentGame.is_game_end = true

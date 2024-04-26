@@ -324,8 +324,8 @@ class GameController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 // secondCount++;
+                console.log("getXvalue========>>>>>>>>>>>>>", currentGame.is_game_end, isTimerPaused);
                 if ((currentGame === null || currentGame === void 0 ? void 0 : currentGame.end_time) < Date.now() && !currentGame.is_game_end && !isTimerPaused) {
-                    console.log("getXvalue========>>>>>>>>>>>>>", currentGame.is_game_end, isTimerPaused);
                     isTimerPaused = true;
                     currentGame.end_time = Date.now();
                     currentGame.is_game_end = true;
