@@ -74,6 +74,7 @@ const xValueGet = () => __awaiter(void 0, void 0, void 0, function* () {
         currentGame = yield Game_1.default.findById(ongoingGame === null || ongoingGame === void 0 ? void 0 : ongoingGame.current_game);
         const xData = yield GameController_1.GameController.getXValue(currentGame);
         if ((currentGame === null || currentGame === void 0 ? void 0 : currentGame.end_time) < Date.now() && !gameInterval) {
+            console.log("gamerestart======>>>>>>", gameInterval);
             gameInterval = true;
             clearInterval(XInterval);
             gameDataGet();

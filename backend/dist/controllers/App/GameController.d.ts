@@ -13,7 +13,7 @@ export declare class GameController {
     static endGame(timerValue: any): Promise<boolean>;
     static withdrowalAutomatically: (betId: any, currentGame: any) => Promise<boolean | void>;
     static checkAutoBet: (currentGame: any) => Promise<boolean>;
-    static getXValue(nextGame: any): Promise<{
+    static getXValue(currentGame: any): Promise<{
         message: string;
         status: boolean | number;
         data: any;
