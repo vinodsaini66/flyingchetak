@@ -50,6 +50,8 @@ const xValueGet = () => __awaiter(void 0, void 0, void 0, function* () {
     XInterval = setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
         const ongoingGame = yield OngoingGame_1.default.findOne();
         currentGame = yield Game_1.default.findById(ongoingGame === null || ongoingGame === void 0 ? void 0 : ongoingGame.current_game);
+        const xData = yield GameController_1.GameController.getXValue(currentGame);
+        console.log("xDataxDataxDataxData=====>>>>>>", xData.data);
         if ((currentGame === null || currentGame === void 0 ? void 0 : currentGame.end_time) < Date.now() && !gameInterval) {
             console.log("gamerestart======>>>>>>", gameInterval);
             gameInterval = true;
@@ -60,7 +62,9 @@ const xValueGet = () => __awaiter(void 0, void 0, void 0, function* () {
                     yield xValueGet();
             }), 10000);
         }
-        const xData = yield GameController_1.GameController.getXValue(currentGame);
+        // else{
+        // 	const checkAutoAPI = GameController.checkAutoBet(currentGame);
+        // }
         if (xData.data.timer > 1) {
             // const checkAutoAPI = GameController.checkAutoBet(currentGame);
         }

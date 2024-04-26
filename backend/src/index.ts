@@ -46,22 +46,27 @@ const xValueGet = async () => {
 		XInterval = setInterval(async () => {
 			const ongoingGame = await OngoingGame.findOne();
 			currentGame = await Game.findById(ongoingGame?.current_game);
-			if( currentGame?.end_time < Date.now() && !gameInterval ){
-				console.log("gamerestart======>>>>>>",gameInterval)
-				gameInterval = true
-				clearInterval(XInterval);
-				gameDataGet()
-				setTimeout(async()=>{
-					gameInterval = false,
-					await xValueGet() 
-				},10000);
-			}
+
 		const xData: {
 			message: string;
 			status: boolean | number;
 			data: any;
 			error: any;
 		} = await GameController.getXValue(currentGame);
+		console.log("xDataxDataxDataxData=====>>>>>>",xData.data)
+		if( currentGame?.end_time < Date.now() && !gameInterval ){
+			console.log("gamerestart======>>>>>>",gameInterval)
+			gameInterval = true
+			clearInterval(XInterval);
+			gameDataGet()
+			setTimeout(async()=>{
+				gameInterval = false,
+				await xValueGet() 
+			},10000);
+		}
+		// else{
+		// 	const checkAutoAPI = GameController.checkAutoBet(currentGame);
+		// }
 		if(xData.data.timer>1){
 			// const checkAutoAPI = GameController.checkAutoBet(currentGame);
 		}
