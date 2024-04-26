@@ -76,6 +76,7 @@ const xValueGet = async () => {
 			error: any;
 		} = await GameController.getXValue(currentGame);
 		if( currentGame?.end_time < Date.now() && !gameInterval ){
+			console.log("gamerestart======>>>>>>",gameInterval)
 			gameInterval = true
 			clearInterval(XInterval);
 			gameDataGet()

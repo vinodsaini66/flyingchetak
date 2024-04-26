@@ -17,7 +17,7 @@ const { ObjectId } = require('mongodb');
 let timer = 1;
 let gameId = "";
 let secondCount = 0;
-const myArray = [5,7,8,9,6,10];
+const myArray = [1,2,3];
 const randomIndex = Math.floor(Math.random() * myArray.length);
 let randomItem = myArray[randomIndex];
 let isTimerPaused = false
@@ -461,7 +461,7 @@ export class GameController {
 		}
 		return true;
 	};
-	static async getXValue(nextGame): Promise<{
+	static async getXValue(currentGame): Promise<{
 		message: string;
 		status: boolean | number;
 		data: any;
@@ -469,7 +469,11 @@ export class GameController {
 	}> {
 		try {	
 			// secondCount++;
-					if(nextGame?.end_time < Date.now() && !isTimerPaused){
+					if(currentGame?.end_time < Date.now() && !currentGame.is_game_end){
+			console.log("getXvalue========>>>>>>>>>>>>>",currentGame.is_game_end)
+						currentGame.end_time = Date.now()
+						currentGame.is_game_end = true
+						currentGame.save()
 						isTimerPaused = true
 						// setTimeout(async() =>await GameController.endGame(timer), 10000);
 						const gameEnd = await GameController.endGame(timer);
