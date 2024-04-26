@@ -48,31 +48,8 @@ const xValueGet = () => __awaiter(void 0, void 0, void 0, function* () {
     setVarForInterval = 0;
     const sseId = new Date().toDateString();
     XInterval = setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
-        // if(!currentGame){
-        // 		const ongoingGame = await OngoingGame.findOne();
-        // 		currentGame = await Game.findById(ongoingGame?.current_game);
-        // 	client.set('current_game',currentGame, async(err, reply) => {
-        // 		if (err) {
-        // 			console.error(err);
-        // 		} else {
-        // 			console.error(reply);
-        // 		}
-        // 	});
-        // }
-        // else{
-        // 	client.get('current_game', async(err, reply) => {
-        // 		if (err) {
-        // 			console.error(err);
-        // 		} else {
-        // 			const deserializedResult = JSON.parse(reply);
-        // 			console.log('Retrieved Result:', deserializedResult);
-        // 			// Now you can use `deserializedResult` in your application
-        // 		}
-        // 	});
-        // }
         const ongoingGame = yield OngoingGame_1.default.findOne();
         currentGame = yield Game_1.default.findById(ongoingGame === null || ongoingGame === void 0 ? void 0 : ongoingGame.current_game);
-        const xData = yield GameController_1.GameController.getXValue(currentGame);
         if ((currentGame === null || currentGame === void 0 ? void 0 : currentGame.end_time) < Date.now() && !gameInterval) {
             console.log("gamerestart======>>>>>>", gameInterval);
             gameInterval = true;
@@ -83,9 +60,7 @@ const xValueGet = () => __awaiter(void 0, void 0, void 0, function* () {
                     yield xValueGet();
             }), 10000);
         }
-        // else{
-        // 	const checkAutoAPI = GameController.checkAutoBet(currentGame);
-        // }
+        const xData = yield GameController_1.GameController.getXValue(currentGame);
         if (xData.data.timer > 1) {
             // const checkAutoAPI = GameController.checkAutoBet(currentGame);
         }

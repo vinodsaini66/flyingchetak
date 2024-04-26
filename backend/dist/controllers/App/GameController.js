@@ -324,13 +324,12 @@ class GameController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 // secondCount++;
-                if ((currentGame === null || currentGame === void 0 ? void 0 : currentGame.end_time) < Date.now() && !currentGame.is_game_end) {
+                if ((currentGame === null || currentGame === void 0 ? void 0 : currentGame.end_time) < Date.now() && !currentGame.is_game_end && !isTimerPaused) {
+                    isTimerPaused = true;
                     console.log("getXvalue========>>>>>>>>>>>>>", currentGame.is_game_end);
                     currentGame.end_time = Date.now();
                     currentGame.is_game_end = true;
                     currentGame.save();
-                    isTimerPaused = true;
-                    // setTimeout(async() =>await GameController.endGame(timer), 10000);
                     const gameEnd = yield GameController.endGame(timer);
                     timer = 1;
                 }

@@ -44,50 +44,24 @@ const xValueGet = async () => {
 	setVarForInterval = 0
 	const sseId = new Date().toDateString();
 		XInterval = setInterval(async () => {
-			// if(!currentGame){
-			// 		const ongoingGame = await OngoingGame.findOne();
-			// 		currentGame = await Game.findById(ongoingGame?.current_game);
-			// 	client.set('current_game',currentGame, async(err, reply) => {
-			// 		if (err) {
-			// 			console.error(err);
-			// 		} else {
-			// 			console.error(reply);
-			// 		}
-			// 	});
-			// }
-			// else{
-			// 	client.get('current_game', async(err, reply) => {
-			// 		if (err) {
-			// 			console.error(err);
-			// 		} else {
-			// 			const deserializedResult = JSON.parse(reply);
-			// 			console.log('Retrieved Result:', deserializedResult);
-			// 			// Now you can use `deserializedResult` in your application
-			// 		}
-			// 	});
-			// }
 			const ongoingGame = await OngoingGame.findOne();
 			currentGame = await Game.findById(ongoingGame?.current_game);
-
+			if( currentGame?.end_time < Date.now() && !gameInterval ){
+				console.log("gamerestart======>>>>>>",gameInterval)
+				gameInterval = true
+				clearInterval(XInterval);
+				gameDataGet()
+				setTimeout(async()=>{
+					gameInterval = false,
+					await xValueGet() 
+				},10000);
+			}
 		const xData: {
 			message: string;
 			status: boolean | number;
 			data: any;
 			error: any;
 		} = await GameController.getXValue(currentGame);
-		if( currentGame?.end_time < Date.now() && !gameInterval ){
-			console.log("gamerestart======>>>>>>",gameInterval)
-			gameInterval = true
-			clearInterval(XInterval);
-			gameDataGet()
-			setTimeout(async()=>{
-				gameInterval = false,
-				await xValueGet() 
-			},10000);
-		}
-		// else{
-		// 	const checkAutoAPI = GameController.checkAutoBet(currentGame);
-		// }
 		if(xData.data.timer>1){
 			// const checkAutoAPI = GameController.checkAutoBet(currentGame);
 		}

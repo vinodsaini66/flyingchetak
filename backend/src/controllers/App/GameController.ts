@@ -469,13 +469,12 @@ export class GameController {
 	}> {
 		try {	
 			// secondCount++;
-					if(currentGame?.end_time < Date.now() && !currentGame.is_game_end){
-			console.log("getXvalue========>>>>>>>>>>>>>",currentGame.is_game_end)
+					if(currentGame?.end_time < Date.now() && !currentGame.is_game_end && !isTimerPaused ){
+						isTimerPaused = true
+						console.log("getXvalue========>>>>>>>>>>>>>",currentGame.is_game_end)
 						currentGame.end_time = Date.now()
 						currentGame.is_game_end = true
 						currentGame.save()
-						isTimerPaused = true
-						// setTimeout(async() =>await GameController.endGame(timer), 10000);
 						const gameEnd = await GameController.endGame(timer);
 						timer = 1;
 					}else{
