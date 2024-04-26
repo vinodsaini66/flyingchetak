@@ -581,16 +581,16 @@ GameController.withdrowalAutomatically = (betId, currentGame) => __awaiter(void 
     const totalWithdrawAmount = result.length > 0 ? result[0].totalWithdrawAmount : 0;
     const remaining = +gameTotal - +totalWithdrawAmount;
     if (bet.deposit_amount > remaining) {
-        (0, __1.xInterValClear)();
         currentGame.end_time = Date.now();
+        bet.status = Bet_1.BetStatus.COMPLETED;
+        bet.save();
         currentGame.save();
         const gameEnd = yield GameController.endGame(timer);
         if (!gameEnd) {
             timer = 1;
             return ResponseHelper_1.default.api("res", false, 'Request Failed', {}, "startTime");
         }
-        bet.status = Bet_1.BetStatus.COMPLETED;
-        bet.save();
+        (0, __1.xInterValClear)();
         return false;
     }
     bet.withdraw_amount = bet.deposit_amount;

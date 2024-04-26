@@ -71,7 +71,7 @@ const xValueGet = () => __awaiter(void 0, void 0, void 0, function* () {
         // 	});
         // }
         const ongoingGame = yield OngoingGame_1.default.findOne();
-        const currentGame = yield Game_1.default.findById(ongoingGame === null || ongoingGame === void 0 ? void 0 : ongoingGame.current_game);
+        currentGame = yield Game_1.default.findById(ongoingGame === null || ongoingGame === void 0 ? void 0 : ongoingGame.current_game);
         const xData = yield GameController_1.GameController.getXValue(currentGame);
         if ((currentGame === null || currentGame === void 0 ? void 0 : currentGame.end_time) < Date.now() && !gameInterval) {
             gameInterval = true;
@@ -82,14 +82,14 @@ const xValueGet = () => __awaiter(void 0, void 0, void 0, function* () {
                     yield xValueGet();
             }), 10000);
         }
-        else {
-            const checkAutoAPI = GameController_1.GameController.checkAutoBet(currentGame);
-        }
-        // if(xData.data.timer>1){
+        // else{
         // 	const checkAutoAPI = GameController.checkAutoBet(currentGame);
         // }
+        if (xData.data.timer > 1) {
+            // const checkAutoAPI = GameController.checkAutoBet(currentGame);
+        }
         exports.io.emit('xValue', xData);
-    }), 200);
+    }), 100);
     // await gameDataGet()
 });
 const gameDataGet = () => __awaiter(void 0, void 0, void 0, function* () {
@@ -114,21 +114,6 @@ const xInterValClear = () => __awaiter(void 0, void 0, void 0, function* () {
         exports.io.emit('xValue', xData);
         setTimeout(() => __awaiter(void 0, void 0, void 0, function* () { return yield xValueGet(); }), 10000);
     }
-    // setTimeout(function(){
-    // 	clearInterval(XInterval);
-    // 	console.log('stoped');
-    //   },100);
-    // console.log("checkautobet=========>>>>>>>>>",XInterval)
-    // if (XInterval === null) {
-    // 	console.log("The interval has been cleared.");
-    // 	gameDataGet()
-    // 	io.emit('xValue', xData);
-    // 	setTimeout(async() =>await xValueGet(), 10000);
-    // } else {
-    // 	// clearInterval(XInterval);
-    // 	xInterValClear()
-    // 	console.log("The interval is still active.");
-    // }
 });
 exports.xInterValClear = xInterValClear;
 exports.io.on('connection', (socket) => __awaiter(void 0, void 0, void 0, function* () {

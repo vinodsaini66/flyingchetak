@@ -423,16 +423,16 @@ export class GameController {
 		const totalWithdrawAmount: number = result.length > 0 ? result[0].totalWithdrawAmount : 0;
         const remaining: number = +gameTotal - +totalWithdrawAmount;
 		if (bet.deposit_amount > remaining) {
-			xInterValClear()
 			currentGame.end_time = Date.now()
+			bet.status = BetStatus.COMPLETED;
+            bet.save();
 			currentGame.save()
             const gameEnd = await GameController.endGame(timer);
             if (!gameEnd) {
 				timer = 1
             	return _RS.api("res", false, 'Request Failed', {}, "startTime");
             }
-            bet.status = BetStatus.COMPLETED;
-            bet.save();
+			xInterValClear()
             return false;
         }
 

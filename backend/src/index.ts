@@ -66,8 +66,8 @@ const xValueGet = async () => {
 			// 		}
 			// 	});
 			// }
-						const ongoingGame = await OngoingGame.findOne();
-						const	currentGame = await Game.findById(ongoingGame?.current_game);
+			const ongoingGame = await OngoingGame.findOne();
+			currentGame = await Game.findById(ongoingGame?.current_game);
 
 		const xData: {
 			message: string;
@@ -84,14 +84,14 @@ const xValueGet = async () => {
 				await xValueGet() 
 			},10000);
 		}
-		else{
-			const checkAutoAPI = GameController.checkAutoBet(currentGame);
-		}
-		// if(xData.data.timer>1){
+		// else{
 		// 	const checkAutoAPI = GameController.checkAutoBet(currentGame);
 		// }
+		if(xData.data.timer>1){
+			// const checkAutoAPI = GameController.checkAutoBet(currentGame);
+		}
 		io.emit('xValue', xData);
-	},200);
+	},100);
 	
 	// await gameDataGet()
 }
@@ -124,21 +124,6 @@ const xValueGet = async () => {
 			io.emit('xValue', xData);
 			setTimeout(async() =>await xValueGet(), 10000);
 		}
-		// setTimeout(function(){
-		// 	clearInterval(XInterval);
-		// 	console.log('stoped');
-		//   },100);
-		// console.log("checkautobet=========>>>>>>>>>",XInterval)
-		// if (XInterval === null) {
-		// 	console.log("The interval has been cleared.");
-		// 	gameDataGet()
-		// 	io.emit('xValue', xData);
-		// 	setTimeout(async() =>await xValueGet(), 10000);
-		// } else {
-		// 	// clearInterval(XInterval);
-		// 	xInterValClear()
-		// 	console.log("The interval is still active.");
-		// }
 	}
 
   io.on('connection', async(socket) => {
