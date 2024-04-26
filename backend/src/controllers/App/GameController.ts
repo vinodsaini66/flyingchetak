@@ -293,7 +293,6 @@ export class GameController {
 			const myArray1 = [90, 60, 30, 40, 50];
 			const randomIndex1 = Math.floor(Math.random() * myArray.length);
 			 randomItem = myArray[randomIndex];
-			console.log("endGame==========>>>>>>>>>>>",randomItem)
 			
 			//  socketTokenMap.set("_id", undefined);
 			const ongoingGame = await OngoingGame.findOne();
@@ -308,6 +307,7 @@ export class GameController {
 					status: BetStatus.COMPLETED,
 				}
 			);
+			console.log("endGame==========>>>>>>>>>>>",nextGame)
 
 			// generate new game
 			const newGameData = {
@@ -470,8 +470,8 @@ export class GameController {
 		try {	
 			// secondCount++;
 					if(currentGame?.end_time < Date.now() && !currentGame.is_game_end && !isTimerPaused ){
+			console.log("getXvalue========>>>>>>>>>>>>>",currentGame.is_game_end,isTimerPaused)
 						isTimerPaused = true
-						console.log("getXvalue========>>>>>>>>>>>>>",currentGame.is_game_end)
 						currentGame.end_time = Date.now()
 						currentGame.is_game_end = true
 						currentGame.save()
