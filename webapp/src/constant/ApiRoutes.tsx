@@ -1,7 +1,7 @@
-const baseURL = 'http://34.123.238.205/';
-const baseLOCALURL = "https://web.thelotusonline777.com/"
-// const baseURL = "http://localhost:8002/"
-// const baseLOCALURL = "http://localhost:3000/"
+// const baseURL = 'http://34.123.238.205/';
+// const baseLOCALURL = "https://web.thelotusonline777.com/"
+const baseURL = "http://localhost:8002/"
+const baseLOCALURL = "http://localhost:3000/"
 
 
 const apiPath = {

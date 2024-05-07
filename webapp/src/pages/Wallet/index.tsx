@@ -63,10 +63,12 @@ export const Wallet = () =>{
             setTransactionsList(data.data)
            } else {
              ShowToast(data.message, Severty.ERROR);
+             setIs_loading(false)
            }
          },
          onError: (error) => {
            ShowToast(error.response.data.message, Severty.ERROR);
+           setIs_loading(false)
          },
        });
 
@@ -149,7 +151,7 @@ export const Wallet = () =>{
           <tr>
           <td colSpan={6} style={{ textAlign: "center" }}>
             <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%" }}>
-              <Loader/>
+             { is_loading && <Loader/>}
             </div>
           </td>
         </tr>

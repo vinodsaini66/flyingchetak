@@ -22,7 +22,9 @@ const randomIndex = Math.floor(Math.random() * myArray.length);
 let randomItem = myArray[randomIndex];
 let isTimerPaused = false
 let currentTime
+
 export class GameController {
+	
 	static async getGamePageData(req, res, next) {
 		console.log("getgamepagedata=========>>>>>>>>>..")
 		const startTime = new Date().getTime();
@@ -128,6 +130,7 @@ export class GameController {
 			}
 
 			const ongoingGame = await OngoingGame.findOne();
+			
 			const nextGame = await Game.findById(ongoingGame?.current_game);
 
 			// generate bet
@@ -157,13 +160,16 @@ export class GameController {
 				nextGame.commission_amount = updatedAdminCommission;
 
 				await nextGame.save();
-				const gameData: {
-					message: string;
-					status: boolean | number;
-					data: any;
-					error: any;
-				  } = await GameController.handleGame();
-				  io.emit('gameData', gameData);
+			
+				// const gameData: {
+				// 	message: string;
+				// 	status: boolean | number;
+				// 	data: any;
+				// 	error: any;
+				//   } = await GameController.handleGame(); vinod
+
+				//   io.emit('gameData', gameData); vinod
+
 				return {message:"Your bet has been successfully placed!",status:true}
 			} else {
 				wallet.balance = +wallet.balance + +amount;
@@ -179,13 +185,16 @@ export class GameController {
 		}
 	}
 
+
 	// auto bet 
 	static async autoBet(payload,userId) {
 		console.log("autoBet==========>>>>>>>>>>>")
 		const startTime = new Date().getTime();
 		try {
 			const { amount,xValue,boxType,betType } = payload;
+
 			const wallet = await Wallet.findOne({ userId: userId });
+
 			const walletTransactionData = {
 				payee: userId,
 				receiver: Helper?.admin?._id, //adminId,
@@ -201,26 +210,29 @@ export class GameController {
 	
 			const transaction = await new Transaction(walletTransactionData).save();
 			console.log("transaction======",transaction);
+
 			if (transaction) {
 				wallet.balance = +wallet.balance - +amount;
 				wallet.save();
 			}
 	
 			const ongoingGame = await OngoingGame.findOne();
-			const nextGame = await Game.findById(ongoingGame?.current_game);
+
+			const nextGame = await Game.findById(ongoingGame?.current_game); 
 	
 			// generate bet
 			const betData = {
 				game_id: nextGame?._id, //next game id
 				user_id: userId,
 				status: BetStatus.ACTIVE,
-				deposit_amount: amount*xValue,
+				deposit_amount: amount,//*xValue,
 				xValue:xValue,
 				betType:betType,
 				boxType:boxType
 			};
 	
 			const bet = await new Bet(betData).save();
+
 			console.log("bet=====",bet);
 			// update game total deposit
 			if (bet) {
@@ -236,7 +248,10 @@ export class GameController {
 				nextGame.total_deposit = newAmount;
 				nextGame.commission_amount = updatedAdminCommission;
 	
-				await nextGame.save();
+				await nextGame.save(); 
+
+				return {message:"Your bet has been successfully placed!",status:true}
+
 			} else {
 				wallet.balance = +wallet.balance + +amount;
 				transaction.status = Status_Types.FAILED;
@@ -251,7 +266,7 @@ export class GameController {
 				// 	startTime
 				// );
 			}
-			return {message:"Your bet has been successfully placed!",status:true}
+			
 	
 			// return _RS.api(
 			// 	res,
@@ -266,6 +281,7 @@ export class GameController {
 		}
 	}
 	// auto bet end function
+
 
 	static async getCurrentGameSession(req, res, next) {
 		console.log("getCurrentGameSession==========>>>>>>>>>>>")
@@ -287,6 +303,44 @@ export class GameController {
 		}
 	}
 
+	static async newGame(timerValue) {
+		try {
+			const myArray1 = [90, 60, 30, 40, 50];
+			const randomIndex1 = Math.floor(Math.random() * myArray.length);
+			 randomItem = myArray[randomIndex];
+			
+			const ongoingGame = await OngoingGame.findOne();
+
+			// generate new game
+			const newGameData = {
+				total_deposit: 0,
+				commission_amount: 0,
+				is_game_end:false,
+				is_game_start:false,
+				base_amount: 0,
+				fall_rate: 0,
+				earning: 0,
+				start_time: Date.now()+(10*1000),
+				end_time: Date.now()+(randomItem*1000),
+			};
+
+			const newNextGame = await new Game(newGameData).save();
+
+			ongoingGame.current_game = newNextGame._id;
+			ongoingGame.next_game = newNextGame._id;
+			ongoingGame.fall_rate = timerValue;
+			// console.log(maxBet, '---------')
+			
+			timer = 1;
+
+			await ongoingGame.save();
+			return true;
+
+		} catch (error) {
+			console.log(error);
+			return false;
+		}
+	}
 	// end game and generate new game.
 	static async endGame(timerValue) {
 		try {
@@ -307,6 +361,7 @@ export class GameController {
 					status: BetStatus.COMPLETED,
 				}
 			);
+
 			console.log("endGame==========>>>>>>>>>>>",nextGame)
 
 			// generate new game
@@ -314,6 +369,8 @@ export class GameController {
 				// session: 'fdhjhgjkhdfkg',
 				total_deposit: 0,
 				commission_amount: 0,
+				is_game_end:false,
+				is_game_start:false,
 				base_amount: (
 					await Bet.findOne({ game_id: nextGame._id })
 						.sort({ deposit_amount: -1 })
@@ -341,14 +398,18 @@ export class GameController {
 					status: BetStatus.ACTIVE,
 				}
 			);
+
 			await Game.updateOne(
 				{
 					_id: ongoingGame.current_game,
 				},
 				{
 					fall_rate: Number(timerValue),
+					is_active:false,
+					is_game_end:true
 				}
 			);
+
 			ongoingGame.current_game = ongoingGame.next_game;
 			ongoingGame.next_game = newNextGame._id;
 			ongoingGame.fall_rate = timerValue;
@@ -366,6 +427,7 @@ export class GameController {
 			timer = 1;
 			await ongoingGame.save();
 			return true;
+
 		} catch (error) {
 			console.log(error);
 			return false;
@@ -443,6 +505,7 @@ export class GameController {
 		return true;
 	} 
 
+
 	static checkAutoBet = async(currentGame) => {
 		
 		// const ongoingGame = await OngoingGame.findOne();
@@ -453,7 +516,9 @@ export class GameController {
 			status: BetStatus.ACTIVE,
 			xValue: { $lte: timer.toFixed(2) }
 		}).populate([{ path: 'user_id' }]);
+
 		console.log("timetimetimeritismnbdmb......?>>>>>",allBets)
+
 		if(allBets.length>0){
 			allBets.forEach(async(betsDetail, index) => {
 				await GameController.withdrowalAutomatically(betsDetail._id,currentGame);
@@ -461,6 +526,8 @@ export class GameController {
 		}
 		return true;
 	};
+
+
 	static async getXValue(currentGame): Promise<{
 		message: string;
 		status: boolean | number;
@@ -470,6 +537,7 @@ export class GameController {
 		try {	
 			// secondCount++;
 			console.log("getXvalue========>>>>>>>>>>>>>",currentGame.is_game_end,isTimerPaused)
+
 					if(currentGame?.end_time < Date.now() && !currentGame.is_game_end && !isTimerPaused ){
 						isTimerPaused = true
 						currentGame.end_time = Date.now()
@@ -501,6 +569,8 @@ export class GameController {
 			};
 		}
 	}
+
+
 	static async handleGame(): Promise<{
 		message: string;
 		status: boolean | number;
@@ -519,10 +589,12 @@ export class GameController {
 			// }
 			// else{
 				const currentGame = await Game.findById(ongoingGame?.current_game);
+				
 				const allBets = await Bet.find({
 					game_id: currentGame?._id,
 				}).populate([{ path: 'user_id' }]);
 			// }
+
 			const fallrate = await Game.find().limit(10).sort({created_at:-1})
 			// let userBets = await Bet.find({user_id:userId}).sort({created_at:-1})
 			
@@ -547,14 +619,10 @@ export class GameController {
 
 			// const totalWithdrawAmount: number =
 			// 	result.length > 0 ? result[0].totalWithdrawAmount : 0;
-			const totalDepositeAmount: number =
-				result.length > 0 ? result[0].totalDepositeAmount : 0;
+			const totalDepositeAmount: number = result.length > 0 ? result[0].totalDepositeAmount : 0;
 
 				// const baseAmount: number = currentGame?.base_amount;
-			const gameTotal: number =
-				Math.round(
-					(totalDepositeAmount - currentGame?.commission_amount) * 100
-				) / 100;
+			const gameTotal: number = Math.round((totalDepositeAmount - currentGame?.commission_amount) * 100) / 100;
 				currentGame.base_amount = gameTotal
 				currentGame.total_deposit = totalDepositeAmount
 				currentGame.save()
@@ -588,6 +656,7 @@ export class GameController {
 			};
 		}
 	}
+
 
 	static async handleWithdrawRequest(payloads) {
 		const startTime = new Date().getTime();

@@ -16,6 +16,7 @@ const Game = new Schema(
 		fall_rate: { type: Number, default: 1 },
 		earning: { type: Number, default: 0 },
 		is_game_end: { type: Boolean, default: false },
+		is_game_start: { type: Boolean, default: false },
 		base_amount: { type: Number, default: 0 }, // max bet amount
 		start_time: { type: String, default: null }, // date.now
 		end_time: { type: String, default: null }, // date.now
